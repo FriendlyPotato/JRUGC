@@ -1,0 +1,8 @@
+# depslib dependency file v1.0
+1491824034 source:c:\users\ugc\documents\demandes\pvb\jrugc\jrugc_decode\main.c
+	<stdio.h>
+	<stdlib.h>
+	<dirent.h>
+	<string.h>
+	<pthread.h>
+
