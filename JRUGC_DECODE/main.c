@@ -20,12 +20,14 @@ void appendNumber(int value){
     pos += 8;
 }
 
-long bindec(char* src, int length) {
+long bindec(int length) {
 int i;
 long result=0;
     for (i=0;i<length;i++) {
-        result+=(src[i+pos]-48)*pow(2,length-i-1);
+        result+=(temp1m500k[i+pos]-48)*pow(2,length-i-1);
     }
+pos+=length;
+printf("%ld\n",result);
 return result;
 }
 
@@ -68,7 +70,6 @@ void compile_file_read() {
     fgets(temp1m500k,pos,C);
     fclose(C);
     pos = 0;
-
 }
 
 int main(void)
@@ -78,6 +79,10 @@ int main(void)
     sprintf(temp500,"C:\\Users\\ugc\\Desktop\\43052170116_JRU\\flash24h\\");
     bru_file();
     compile_file_read();
+    bindec(8);
+    bindec(8);
+    bindec(8);
+    bindec(8);
     free(temp1m500k);
     free(temp500);
     return 0;
