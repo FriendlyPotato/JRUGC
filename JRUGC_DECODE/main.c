@@ -10,6 +10,7 @@ FILE* C;
 int path_length;
 long file_length;
 long pos;
+int treated;
 
 void appendNumber(int value){
     int i = 0;
@@ -31,7 +32,6 @@ long power(int degree)
         term *= term;
         degree >>= 1;
     }
-
     return result;
 }
 
@@ -42,6 +42,7 @@ long result=0;
         result+=(temp1m500k[i+pos]-48)*power(length-i-1);
     }
 pos+=length;
+treated+=length;
 return result;
 }
 
@@ -60,6 +61,7 @@ void bru_file_decode(char* src) {
 }
 
 void bru_file() {
+    printf("Encoding...\n");
     path_length = strlen(temp500);
     pos=0;
     DIR *dir;
@@ -79,10 +81,57 @@ void bru_file() {
 }
 
 void compile_file_read() {
+    double q_scale;
+    printf("Decoding...\n");
     C = fopen(strcat(temp500,"compile.txt"),"r");
     fgets(temp1m500k,pos,C);
     fclose(C);
     pos = 0;
+    while (pos<file_length) {
+        int id = bindec(8);
+        int l_message = bindec(10);
+        int length = 112*(floor((l_message+1)/14)+1);
+        if (length==8288) {
+            bindec(94);
+            continue;
+        }
+
+//        if (id==1)   printf("GENERAL_MESSAGE");
+//        if (id==197) printf("ETAL_AUTO_ODOMETRIE");
+//        if (id==199) printf("CHANGEMENT_DE_MODE");
+//        if (id==200) printf("CHANGEMENT_DE_NIVEAU");
+//        if (id==198) printf("INFO_VITESSES_DISTANCE");
+//        if (id==2)   printf("DATA_ENTRY_COMPLETED");
+//        if (id==3)   printf("EMERGENCY_BRAKE_STATE");
+//        if (id==6)   printf("MESSAGE_FROM_BALISE");
+//        if (id==9)   printf("MESSAGE_FROM_RBC");
+//        if (id==10)  printf("MESSAGE_TO_RBC");
+//        if (id==15)  printf("PLAIN TEXT MESSAGE");
+//        if (id==11)  printf("DRIVER_ACTIONS");
+//        if (id==5)   printf("EVENTS");
+        int year = bindec(7);
+        int month = bindec(4);
+        int day = bindec(5);
+        int hour = bindec(5);
+        int minute = bindec(6);
+        int second = bindec(6);
+        int tts = 50*bindec(5);
+        int v_train = 5*bindec(7);
+        int q_scale_read = bindec(2);
+        if (q_scale_read==1) q_scale = 1.0;
+        if (q_scale_read==0) q_scale = 0.1;
+        if (q_scale_read==2) q_scale = 10.0;
+        int nid_c = bindec(10);
+        int nid_bg = bindec(15)/2;
+        int d_lrbg = bindec(14)*q_scale;
+        int q_dir = bindec(2);
+        int q_dlrbg = bindec(2);
+        int l_doubtover = q_scale*bindec(15);
+        int l_doubtunder = q_scale*bindec(15);
+        bindec(length-treated);
+        treated=0;
+        printf("%02d/%02d/%02d  %02d:%02d:%02d:%03d\n",day,month,year,hour,minute,second,tts);
+    }
 }
 
 int main(void)
@@ -93,9 +142,6 @@ int main(void)
     bru_file();
     file_length=pos;
     compile_file_read();
-    while(pos<file_length) {
-        bindec(8);
-    }
     free(temp1m500k);
     free(temp500);
     return 0;
