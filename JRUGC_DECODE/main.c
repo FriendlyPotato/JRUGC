@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <dirent.h>
 #include <string.h>
+#include <math.h>
 
 char* temp500;
 char* temp1m500k;
@@ -19,6 +20,15 @@ void appendNumber(int value){
     pos += 8;
 }
 
+long bindec(char* src, int length) {
+int i;
+long result=0;
+    for (i=0;i<length;i++) {
+        result+=(src[i+pos]-48)*pow(2,length-i-1);
+    }
+return result;
+}
+
 void bru_file_decode(char* src) {
     FILE* P;
     int c,i=0;
@@ -34,18 +44,18 @@ void bru_file_decode(char* src) {
     fclose(P);
 }
 
-void bru_file_id(char* path) {
-    path_length = strlen(path);
+void bru_file() {
+    path_length = strlen(temp500);
     pos=0;
     DIR *dir;
-    C = fopen(strcat(path,"compile.txt"),"w+");
-    path[path_length]='\0';
+    C = fopen(strcat(temp500,"compile.txt"),"w+");
+    temp500[path_length]='\0';
     struct dirent *ent;
-    dir = opendir (path);
+    dir = opendir (temp500);
     while ((ent = readdir (dir)) != NULL) {
         if (ent->d_name[10]=='.') {
-            bru_file_decode(strcat(path,ent->d_name));
-            path[path_length]='\0';
+            bru_file_decode(strcat(temp500,ent->d_name));
+            temp500[path_length]='\0';
         }
     }
     closedir (dir);
@@ -53,16 +63,23 @@ void bru_file_id(char* path) {
     fclose(C);
 }
 
+void compile_file_read() {
+    C = fopen(strcat(temp500,"compile.txt"),"r");
+    fgets(temp1m500k,pos,C);
+    fclose(C);
+    pos = 0;
+
+}
+
 int main(void)
 {
-    temp1m500k = malloc(1100000000);
+    temp1m500k = malloc(115000000*sizeof(char));
     temp500 = malloc(500*sizeof(char));
-    temp10 = malloc(10*sizeof(char));
     sprintf(temp500,"C:\\Users\\ugc\\Desktop\\43052170116_JRU\\flash24h\\");
-    bru_file_id(temp500);
+    bru_file();
+    compile_file_read();
     free(temp1m500k);
     free(temp500);
-    free(temp10);
     return 0;
 }
 
