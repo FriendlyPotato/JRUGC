@@ -3,8 +3,8 @@
 #include <dirent.h>
 #include <string.h>
 
-char* temp500;
-char* temp1m500k;
+char* path_buffer;
+char* Master_Bluffer;
 char* temp10;
 FILE* C;
 int path_length;
@@ -15,7 +15,7 @@ int treated;
 void appendNumber(int value){
     int i = 0;
     for(i=pos+7;i>=pos;i--){
-        temp1m500k[i] = (value & 1)+48;
+        Master_Bluffer[i] = (value & 1)+48;
         value >>= 1;
     }
     pos += 8;
@@ -39,7 +39,7 @@ long bindec(int length) {
 int i;
 long result=0;
     for (i=0;i<length;i++) {
-        result+=(temp1m500k[i+pos]-48)*power(length-i-1);
+        result+=(Master_Bluffer[i+pos]-48)*power(length-i-1);
     }
 pos+=length;
 treated+=length;
@@ -54,61 +54,85 @@ void bru_file_decode(char* src) {
         i++;
         if (i>129 && ((i-130)%16)<14) {
             appendNumber(c);
-            temp1m500k[pos] = '\0';
+            Master_Bluffer[pos] = '\0';
         }
     }
     fclose(P);
 }
 
 void bru_file() {
-    printf("Encoding...\n");
-    path_length = strlen(temp500);
+    path_length = strlen(path_buffer);
     pos=0;
     DIR *dir;
-    C = fopen(strcat(temp500,"compile.txt"),"w+");
-    temp500[path_length]='\0';
+    C = fopen(strcat(path_buffer,"compile.txt"),"w+");
+    path_buffer[path_length]='\0';
     struct dirent *ent;
-    dir = opendir (temp500);
+    dir = opendir (path_buffer);
     while ((ent = readdir (dir)) != NULL) {
         if (ent->d_name[10]=='.') {
-            bru_file_decode(strcat(temp500,ent->d_name));
-            temp500[path_length]='\0';
+            bru_file_decode(strcat(path_buffer,ent->d_name));
+            path_buffer[path_length]='\0';
         }
     }
     closedir (dir);
-    fprintf(C,"%s",temp1m500k);
+    fprintf(C,"%s",Master_Bluffer);
     fclose(C);
 }
 
 void compile_file_read() {
+    char* id_name_buffer = malloc(25*sizeof(char));
     double q_scale;
-    printf("Decoding...\n");
-    C = fopen(strcat(temp500,"compile.txt"),"r");
-    fgets(temp1m500k,pos,C);
+    C = fopen(strcat(path_buffer,"compile.txt"),"r");
+    fgets(Master_Bluffer,pos,C);
     fclose(C);
     pos = 0;
     while (pos<file_length) {
+        treated=0;
         int id = bindec(8);
         int l_message = bindec(10);
-        int length = 112*(floor((l_message+1)/14)+1);
+        int length = 112*((int)((l_message+1)/14)+1);
         if (length==8288) {
             bindec(94);
             continue;
         }
-
-//        if (id==1)   printf("GENERAL_MESSAGE");
-//        if (id==197) printf("ETAL_AUTO_ODOMETRIE");
-//        if (id==199) printf("CHANGEMENT_DE_MODE");
-//        if (id==200) printf("CHANGEMENT_DE_NIVEAU");
-//        if (id==198) printf("INFO_VITESSES_DISTANCE");
-//        if (id==2)   printf("DATA_ENTRY_COMPLETED");
-//        if (id==3)   printf("EMERGENCY_BRAKE_STATE");
-//        if (id==6)   printf("MESSAGE_FROM_BALISE");
-//        if (id==9)   printf("MESSAGE_FROM_RBC");
-//        if (id==10)  printf("MESSAGE_TO_RBC");
-//        if (id==15)  printf("PLAIN TEXT MESSAGE");
-//        if (id==11)  printf("DRIVER_ACTIONS");
-//        if (id==5)   printf("EVENTS");
+        switch(id) {
+            case 197:
+            sprintf(id_name_buffer,"ETAL_AUTO_ODOMETRIE");
+            break;
+            case 199:
+            sprintf(id_name_buffer,"CHANGEMENT_DE_MODE");
+            break;
+            case 200:
+            sprintf(id_name_buffer,"CHANGEMENT_DE_NIVEAU");
+            break;
+            case 198:
+            sprintf(id_name_buffer,"INFO_VITESSES_DISTANCE");
+            break;
+            case 2:
+            sprintf(id_name_buffer,"DATA_ENTRY_COMPLETED");
+            break;
+            case 3:
+            sprintf(id_name_buffer,"EMERGENCY_BRAKE_STATE");
+            break;
+            case 6:
+            sprintf(id_name_buffer,"MESSAGE_FROM_BALISE");
+            break;
+            case 9:
+            sprintf(id_name_buffer,"MESSAGE_FROM_RBC");
+            break;
+            case 10:
+            sprintf(id_name_buffer,"MESSAGE_TO_RBC");
+            break;
+            case 15:
+            sprintf(id_name_buffer,"PLAIN TEXT MESSAGE");
+            break;
+            case 11:
+            sprintf(id_name_buffer,"DRIVER_ACTIONS");
+            break;
+            case 5:
+            sprintf(id_name_buffer,"EVENTS");
+            break;
+        }
         int year = bindec(7);
         int month = bindec(4);
         int day = bindec(5);
@@ -131,21 +155,22 @@ void compile_file_read() {
         int id_driver_0 = bindec(32);
         unsigned long nid_operational = bindec(28); pos+=4; treated+=4;
         int m_level = bindec(3);
+        int m_mode = bindec(4);
         pos+=length-treated;
-        treated=0;
-        printf("%02d/%02d/%02d  %02d:%02d:%02d:%03d\n",day,month,year,hour,minute,second,tts);
+//        printf("%02d/%02d/%02d  %02d:%02d:%02d:%03d\n",day,month,year,hour,minute,second,tts);
     }
+    free(id_name_buffer);
 }
 
 int main(void)
 {
-    temp1m500k = malloc(115000000*sizeof(char));
-    temp500 = malloc(500*sizeof(char));
-    sprintf(temp500,"C:\\Users\\ugc\\Desktop\\43052170116_JRU\\flash24h\\");
+    Master_Bluffer = malloc(115000000*sizeof(char));
+    path_buffer = malloc(500*sizeof(char));
+    sprintf(path_buffer,"C:\\Users\\ugc\\Desktop\\43052170116_JRU\\flash24h\\");
     bru_file();
     file_length=pos;
     compile_file_read();
-    free(temp1m500k);
-    free(temp500);
+    free(Master_Bluffer);
+    free(path_buffer);
     return 0;
 }
