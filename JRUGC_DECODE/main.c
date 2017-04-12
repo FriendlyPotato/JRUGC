@@ -3,8 +3,14 @@
 #include <dirent.h>
 #include <string.h>
 
+//Size of the buffer to read the entire file
+#define Master_Bluffer_Size 115000000
+//Size of the buffer to store the path name
+#define Path_Buffer_Size 500
+
 char* path_buffer;
 char* Master_Bluffer;
+char* hexdec_buffer;
 char* temp10;
 FILE* C;
 int path_length;
@@ -12,8 +18,10 @@ long file_length;
 long pos;
 int treated;
 
+
+
 void appendNumber(int value){
-    int i = 0;
+    long i;
     for(i=pos+7;i>=pos;i--){
         Master_Bluffer[i] = (value & 1)+48;
         value >>= 1;
@@ -35,11 +43,43 @@ long power(int degree)
     return result;
 }
 
+char* hexdec(int length) {
+    int i;
+    long c = 0;
+    printf("%d : %d blocs\n\n",length,(length+3)/4);
+    hexdec_buffer[(length+3)/4]='\0';
+    for (i=1;i<=length%4;i++) {
+        printf("Traitement du bit %d : %d dans le bloc %d à la puissance %d\n",pos+length-i,Master_Bluffer[pos+length-i]-48,length/4+1,3-(pos+length-i)%4);
+        if (Master_Bluffer[pos+length-i]!=48) c+=power(3-(pos+length-i)%4);
+    }
+    if (c>=10) c+=55; else c+=48;
+    printf("c : %d\n",c);
+    if (length%4!=0) hexdec_buffer[length/4]=c;
+    c=0;
+    for (i=length/4;i>=1;i--) {
+        printf("Traitement du bit %d : %d dans le bloc %d à la puissance %d\n",pos+4*i-1,Master_Bluffer[pos+4*i-1]-48,i,3-(pos+4*i-1)%4);
+        if (Master_Bluffer[pos+4*i-1]!=48) c+=power(3-(pos+4*i-1)%4);
+        printf("Traitement du bit %d : %d dans le bloc %d à la puissance %d\n",pos+4*i-2,Master_Bluffer[pos+4*i-2]-48,i,3-(pos+4*i-2)%4);
+        if (Master_Bluffer[pos+4*i-2]!=48) c+=power(3-(pos+4*i-2)%4);
+        printf("Traitement du bit %d : %d dans le bloc %d à la puissance %d\n",pos+4*i-3,Master_Bluffer[pos+4*i-3]-48,i,3-(pos+4*i-3)%4);
+        if (Master_Bluffer[pos+4*i-3]!=48) c+=power(3-(pos+4*i-3)%4);
+        printf("Traitement du bit %d : %d dans le bloc %d à la puissance %d\n",pos+4*i-4,Master_Bluffer[pos+4*i-4]-48,i,3-(pos+4*i-4)%4);
+        if (Master_Bluffer[pos+4*i-4]!=48) c+=power(3-(pos+4*i-4)%4);
+
+        if (c>=10) c+=55; else c+=48;
+        printf("c : %d (%c)\n",c,c);
+        hexdec_buffer[i-1]=c;
+        c=0;
+    }
+    printf("%s\n",hexdec_buffer);
+//    pos+=length;
+}
+
 long bindec(int length) {
 int i;
 long result=0;
     for (i=0;i<length;i++) {
-        result+=(Master_Bluffer[i+pos]-48)*power(length-i-1);
+        if ((Master_Bluffer[i+pos]!=48)) result+=power(length-i-1);
     }
 pos+=length;
 treated+=length;
@@ -164,13 +204,17 @@ void compile_file_read() {
 
 int main(void)
 {
-    Master_Bluffer = malloc(115000000*sizeof(char));
-    path_buffer = malloc(500*sizeof(char));
+    Master_Bluffer = malloc(Master_Bluffer_Size*sizeof(char));
+    path_buffer = malloc(Path_Buffer_Size*sizeof(char));
+    hexdec_buffer = malloc(17*sizeof(char));
     sprintf(path_buffer,"C:\\Users\\ugc\\Desktop\\43052170116_JRU\\flash24h\\");
     bru_file();
     file_length=pos;
     compile_file_read();
+pos=0;
+hexdec(64);
     free(Master_Bluffer);
     free(path_buffer);
+    free(hexdec_buffer);
     return 0;
 }
