@@ -116,7 +116,6 @@ void compile_file_read() {
         int minute = bindec(6);
         int second = bindec(6);
         int tts = 50*bindec(5);
-        int v_train = 5*bindec(7);
         int q_scale_read = bindec(2);
         if (q_scale_read==1) q_scale = 1.0;
         if (q_scale_read==0) q_scale = 0.1;
@@ -128,7 +127,11 @@ void compile_file_read() {
         int q_dlrbg = bindec(2);
         int l_doubtover = q_scale*bindec(15);
         int l_doubtunder = q_scale*bindec(15);
-        bindec(length-treated);
+        int v_train = 5*bindec(7);
+        int id_driver_0 = bindec(32);
+        unsigned long nid_operational = bindec(28); pos+=4; treated+=4;
+        int m_level = bindec(3);
+        pos+=length-treated;
         treated=0;
         printf("%02d/%02d/%02d  %02d:%02d:%02d:%03d\n",day,month,year,hour,minute,second,tts);
     }
