@@ -5,6 +5,7 @@
 #include <windows.h>
 #include <wingdi.h>
 #include <CommCtrl.h>
+#include <stdbool.h>
 
 //Size of the buffer to read the entire file
 #define Master_Bluffer_Size 115000000
@@ -18,11 +19,13 @@ char* Master_Bluffer;
 char* Hexdec_Buffer;
 char* Message_Buffer;
 char* temp10;
+bool control;
+bool shift;
 FILE* C;
 int path_length;
-long file_length;
-long pos;
-int treated;
+long long file_length;
+long long pos;
+int treated=0;
 HWND MainWindow;
 HWND MessageWindow;
 HWND ProgressBarWindow;
@@ -127,8 +130,9 @@ void compile_file_read() {
     fgets(Master_Bluffer,pos,C);
     fclose(C);
     pos = 0;
-    long init_value = SendMessage(MessageWindow,LB_INITSTORAGE,(WPARAM)2500000,(WPARAM)500000000);
+    long init_value = SendMessage(MessageWindow,LB_INITSTORAGE,(WPARAM)373333,(WPARAM)55999950);
     printf("%ld\n",init_value);
+    SendMessage(MessageWindow,WM_SETREDRAW,0,0);
     while (pos<file_length) {
         treated=0;
         int id = bindec(8);
@@ -293,14 +297,12 @@ void compile_file_read() {
             break;
         }
         pos+=length-treated;
-//        printf("%s %02d/%02d/%02d  %02d:%02d:%02d:%03d\n",Id_Name_Buffer,day,month,year,hour,minute,second,tts);
         sprintf(List_Buffer,"%s\t%02d/%02d/%02d  %02d:%02d:%02d:%03d    %.1f\t%d\t%d\t%d m\t%s/%s\t%d/%d\t%d km/h\t%s\t%s\t%s\t%s",Id_Name_Buffer,day,month,year,hour,minute,second,tts,q_scale,nid_c,nid_bg,d_lrbg,Q_DIR_Buffer,Q_DLRBG_Buffer,l_doubtunder,l_doubtover,v_train,Driver_Id_Buffer,Hexdec_Buffer,M_LEVEL_Buffer,M_MODE_Buffer);
-//        SendMessage(MessageWindow,LB_ADDSTRING,(WPARAM)0, (LPARAM)List_Buffer);
-        //printf("%d %\n",pos/file_length);
-        //printf("%d\n",index);
+        SendMessage(MessageWindow,LB_ADDSTRING,(WPARAM)0, (LPARAM)List_Buffer);
         SendMessage(ProgressBarWindow,PBM_SETPOS,(int)(100*pos/file_length),0);
         UpdateWindow(ProgressBarWindow);
     }
+    SendMessage(MessageWindow,WM_SETREDRAW,1,0);
     free(Id_Name_Buffer);
     free(List_Buffer);
     free(Q_DIR_Buffer);
@@ -320,7 +322,6 @@ LRESULT CALLBACK WndProc(HWND hwndm, UINT msg, WPARAM wParam, LPARAM lParam) {
         LPDRAWITEMSTRUCT Item;
         HBRUSH MESSAGE_BRUSH;
         RECT rect ;
-//
         case WM_MEASUREITEM:
             pmis = (PMEASUREITEMSTRUCT) lParam;
             pmis->itemHeight = 17;
@@ -413,6 +414,7 @@ LRESULT CALLBACK WndProc(HWND hwndm, UINT msg, WPARAM wParam, LPARAM lParam) {
             SetBkColor(hdc, RGB(230,50,2));
             SetBkMode(hdc,TRANSPARENT);
             FillRect(hdc,&ps.rcPaint,Main_Brush);
+            SelectObject(hdc,Main_Font);
 		  if (hwndm==MainWindow) {
                 DrawText(hdc, TEXT("Message list : "), -1, &rect, DT_CENTER );
                 DrawText(hdc, TEXT("Copyrights UGC : 2016-2999"), -1, &rect, DT_LEFT );
@@ -470,7 +472,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     wc.lpszClassName = g_szClassName;
     wc.hIconSm       = LoadIcon(hInstance,"MAINICON");
     RegisterClassEx(&wc);
-    SendMessage(MessageWindow,WM_SETREDRAW,0,0);
     MainWindow = CreateWindowEx(WS_EX_CLIENTEDGE,g_szClassName,"JRUGC - Outil interne THIF de décodage des JRU - V2.2.0",WS_OVERLAPPEDWINDOW|WS_MAXIMIZE,0, 0, 1700, 1000,NULL, NULL, hInstance, NULL);
     MessageWindow = CreateWindowEx(0,"LISTBOX" ,"Data",WS_CHILD |WS_VSCROLL |WS_BORDER|WS_THICKFRAME | LBS_USETABSTOPS | LBS_NOTIFY | LBS_HASSTRINGS | LBS_OWNERDRAWFIXED,15,70,1450,450,MainWindow,(HMENU) NULL,hInstance,NULL);
     ProgressBarWindow = CreateWindowEx(0,PROGRESS_CLASS,NULL,WS_CHILD |WS_BORDER |PBS_SMOOTH,200,0,250,25,MainWindow,(HMENU) NULL,hInstance,NULL);
@@ -478,7 +479,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     ShowWindow(MainWindow, 3);
     ShowWindow(MessageWindow, nCmdShow);
     ShowWindow(ProgressBarWindow, nCmdShow);
-    SendMessage(MessageWindow,WM_SETREDRAW,1,0);
 
     while (GetMessage(&Msg, NULL, 0, 0)>0)
     {
@@ -489,6 +489,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 compile_file_read();
                 printf("Done\n");
             }
+            if (Msg.wParam==VK_SHIFT) shift = true;
+            if (Msg.wParam==VK_CONTROL) control = true;
+            if (Msg.wParam=='Q') return 0;
+        }
+        if (Msg.message==WM_KEYDOWN) {
+            if (Msg.wParam==VK_SHIFT) shift = false;
+            if (Msg.wParam==VK_CONTROL) control = false;
         }
         TranslateMessage(&Msg);
         DispatchMessage(&Msg);
