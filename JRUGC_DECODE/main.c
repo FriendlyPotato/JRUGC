@@ -13,6 +13,8 @@
 #define Path_Buffer_Size 500
 //Size of the buffer to store the message
 #define Message_Buffer_Size 250
+//Size of the buffer to store the message details
+#define Details_Buffer_Size 250
 
 char* Path_Buffer;
 char* Master_Bluffer;
@@ -102,19 +104,32 @@ void bru_file() {
     path_length = strlen(Path_Buffer);
     pos=0;
     DIR *dir;
-    C = fopen(strcat(Path_Buffer,"compile.txt"),"w+");
+    C = fopen(strcat(Path_Buffer,"compile.txt"),"r");
     Path_Buffer[path_length]='\0';
-    struct dirent *ent;
-    dir = opendir (Path_Buffer);
-    while ((ent = readdir (dir)) != NULL) {
-        if (ent->d_name[10]=='.') {
-            bru_file_decode(strcat(Path_Buffer,ent->d_name));
-            Path_Buffer[path_length]='\0';
+    if (C==NULL) {
+        C = fopen(strcat(Path_Buffer,"compile.txt"),"w+");
+        Path_Buffer[path_length]='\0';
+        struct dirent *ent;
+        dir = opendir (Path_Buffer);
+        while ((ent = readdir (dir)) != NULL) {
+            if (ent->d_name[10]=='.') {
+                bru_file_decode(strcat(Path_Buffer,ent->d_name));
+                Path_Buffer[path_length]='\0';
+            }
         }
+        closedir (dir);
+        fprintf(C,"%s",Master_Bluffer);
+        file_length=pos;
+        pos = 0;
+        printf("%lld\n",file_length);
+    } else {
+        fseek(C,0,SEEK_END);
+        file_length=ftell(C);
+        printf("%lld\n",file_length);
     }
-    closedir (dir);
-    fprintf(C,"%s",Master_Bluffer);
     fclose(C);
+    C=NULL;
+    printf("FIN\n");
 }
 
 void compile_file_read() {
@@ -127,11 +142,12 @@ void compile_file_read() {
     char* M_MODE_Buffer = malloc(15*sizeof(char));
     double q_scale;
     C = fopen(strcat(Path_Buffer,"compile.txt"),"r");
-    fgets(Master_Bluffer,pos,C);
+    Path_Buffer[path_length]='\0';
+    printf("COUCOU1\n");
+    fgets(Master_Bluffer,file_length,C);
+    printf("COUCOU2\n");
     fclose(C);
-    pos = 0;
-    long init_value = SendMessage(MessageWindow,LB_INITSTORAGE,(WPARAM)373333,(WPARAM)55999950);
-    printf("%ld\n",init_value);
+    SendMessage(MessageWindow,LB_INITSTORAGE,(WPARAM)373333,(WPARAM)55999950);
     SendMessage(MessageWindow,WM_SETREDRAW,0,0);
     while (pos<file_length) {
         treated=0;
@@ -298,7 +314,8 @@ void compile_file_read() {
         }
         pos+=length-treated;
         sprintf(List_Buffer,"%s\t%02d/%02d/%02d  %02d:%02d:%02d:%03d    %.1f\t%d\t%d\t%d m\t%s/%s\t%d/%d\t%d km/h\t%s\t%s\t%s\t%s",Id_Name_Buffer,day,month,year,hour,minute,second,tts,q_scale,nid_c,nid_bg,d_lrbg,Q_DIR_Buffer,Q_DLRBG_Buffer,l_doubtunder,l_doubtover,v_train,Driver_Id_Buffer,Hexdec_Buffer,M_LEVEL_Buffer,M_MODE_Buffer);
-        SendMessage(MessageWindow,LB_ADDSTRING,(WPARAM)0, (LPARAM)List_Buffer);
+        int index = SendMessage(MessageWindow,LB_ADDSTRING,(WPARAM)0, (LPARAM)List_Buffer);
+        SendMessage(MessageWindow,LB_SETITEMDATA,index,pos);
         SendMessage(ProgressBarWindow,PBM_SETPOS,(int)(100*pos/file_length),0);
         UpdateWindow(ProgressBarWindow);
     }
@@ -310,6 +327,7 @@ void compile_file_read() {
     free(Driver_Id_Buffer);
     free(M_LEVEL_Buffer);
     free(M_MODE_Buffer);
+    pos=0;
 }
 
 LRESULT CALLBACK WndProc(HWND hwndm, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -330,83 +348,83 @@ LRESULT CALLBACK WndProc(HWND hwndm, UINT msg, WPARAM wParam, LPARAM lParam) {
         case WM_DRAWITEM:
             Item = (LPDRAWITEMSTRUCT) lParam;
             int len = SendMessage(Item->hwndItem , LB_GETTEXT, (WPARAM)Item->itemID, (LPARAM)Message_Buffer);
-                if (Item->itemState & ODS_FOCUS || Item->itemState & ODS_SELECTED)
-                {
-                    SetTextColor(Item->hDC, RGB(255,255,255));
-                    if (Message_Buffer[0]==67 && Message_Buffer[14]==77) {
-                        MESSAGE_BRUSH = CreateSolidBrush(RGB(157,0, 255));
-                        SetBkColor(Item->hDC, RGB(157, 0, 255));
-                        FillRect(Item->hDC, &Item->rcItem, (HBRUSH)MESSAGE_BRUSH);
-                        DeleteObject(MESSAGE_BRUSH);
+                if (len>2) {
+                    if (Item->itemState & ODS_FOCUS || Item->itemState & ODS_SELECTED)
+                    {
+                        SetTextColor(Item->hDC, RGB(255,255,255));
+                        if (Message_Buffer[0]==67 && Message_Buffer[14]==77) {
+                            MESSAGE_BRUSH = CreateSolidBrush(RGB(157,0, 255));
+                            SetBkColor(Item->hDC, RGB(157, 0, 255));
+                            FillRect(Item->hDC, &Item->rcItem, (HBRUSH)MESSAGE_BRUSH);
+                            DeleteObject(MESSAGE_BRUSH);
+                        }
+                        //Message_data_entry_completed
+                        else if (Message_Buffer[0]==68 && Message_Buffer[1]==65) {
+                            MESSAGE_BRUSH = CreateSolidBrush(RGB(255,90,215));
+                            SetBkColor(Item->hDC, RGB(255,90,215));
+                            FillRect(Item->hDC, &Item->rcItem, (HBRUSH)MESSAGE_BRUSH);
+                            DeleteObject(MESSAGE_BRUSH);
+                        }
+                        //Informations_vitesses_distance
+                        else if (Message_Buffer[0]==73) {
+                            MESSAGE_BRUSH = CreateSolidBrush(RGB(90,255,150));
+                            SetBkColor(Item->hDC, RGB(90,255,150));
+                            FillRect(Item->hDC, &Item->rcItem, (HBRUSH)MESSAGE_BRUSH);
+                            DeleteObject(MESSAGE_BRUSH);
+                        }
+                        else if (Message_Buffer[0]==67 && Message_Buffer[14]==78) {
+                            MESSAGE_BRUSH = CreateSolidBrush(RGB(0,0, 255));
+                            SetBkColor(Item->hDC, RGB(0, 0, 255));
+                            FillRect(Item->hDC, &Item->rcItem, (HBRUSH)MESSAGE_BRUSH);
+                            DeleteObject(MESSAGE_BRUSH);
+                        }
+                        else if (Message_Buffer[0]==77 && Message_Buffer[13]==66) {
+                            MESSAGE_BRUSH = CreateSolidBrush(RGB(0,200, 255));
+                            SetBkColor(Item->hDC, RGB(0,200, 255));
+                            FillRect(Item->hDC, &Item->rcItem, (HBRUSH)MESSAGE_BRUSH);
+                            DeleteObject(MESSAGE_BRUSH);
+                        }
+                        else if (Message_Buffer[0]==77 && Message_Buffer[13]==82) {
+                            MESSAGE_BRUSH = CreateSolidBrush(RGB(0,220, 0));
+                            SetBkColor(Item->hDC, RGB(0,220, 0));
+                            FillRect(Item->hDC, &Item->rcItem, (HBRUSH)MESSAGE_BRUSH);
+                            DeleteObject(MESSAGE_BRUSH);
+                        }
+                        else if (Message_Buffer[0]==77 && Message_Buffer[8]==84 && Message_Buffer[11]==82) {
+                            MESSAGE_BRUSH = CreateSolidBrush(RGB(255,175, 0));
+                            SetBkColor(Item->hDC, RGB(255,175, 0));
+                            FillRect(Item->hDC, &Item->rcItem, (HBRUSH)MESSAGE_BRUSH);
+                            DeleteObject(MESSAGE_BRUSH);
+                        }
+                        else if (Message_Buffer[0]==69 && Message_Buffer[1]==77) {
+                            MESSAGE_BRUSH = CreateSolidBrush(RGB(255,0, 0));
+                            SetBkColor(Item->hDC, RGB(255,0, 0));
+                            FillRect(Item->hDC, &Item->rcItem, (HBRUSH)MESSAGE_BRUSH);
+                            DeleteObject(MESSAGE_BRUSH);
+                        }
+                        else {
+                            MESSAGE_BRUSH = CreateSolidBrush(RGB(0,0, 0));
+                            SetBkColor(Item->hDC, RGB(0, 0, 0));
+                            FillRect(Item->hDC, &Item->rcItem, (HBRUSH)MESSAGE_BRUSH);
+                            DeleteObject(MESSAGE_BRUSH);
+                        }
                     }
-                    //Message_data_entry_completed
-                    else if (Message_Buffer[0]==68 && Message_Buffer[1]==65) {
-                        MESSAGE_BRUSH = CreateSolidBrush(RGB(255,90,215));
-                        SetBkColor(Item->hDC, RGB(255,90,215));
-                        FillRect(Item->hDC, &Item->rcItem, (HBRUSH)MESSAGE_BRUSH);
-                        DeleteObject(MESSAGE_BRUSH);
+                    else
+                    {
+                        SetTextColor(Item->hDC, RGB(0,0,0));
+                        SetBkColor(Item->hDC, RGB(220, 220, 220));
+                        FillRect(Item->hDC, &Item->rcItem, (HBRUSH)Gray_Brush);
+                        if (Message_Buffer[0]==73) SetTextColor(Item->hDC, RGB(90,255,150));
+                        if (Message_Buffer[0]==68 && Message_Buffer[1]==65) SetTextColor(Item->hDC, RGB(255,90,215));
+                        if (Message_Buffer[0]==67 && Message_Buffer[14]==77) SetTextColor(Item->hDC, RGB(157,0,255));
+                        if (Message_Buffer[0]==67 && Message_Buffer[14]==78) SetTextColor(Item->hDC, RGB(0,0,255));
+                        if (Message_Buffer[0]==77 && Message_Buffer[13]==66) SetTextColor(Item->hDC, RGB(0,200,255));
+                        if (Message_Buffer[0]==77 && Message_Buffer[13]==82) SetTextColor(Item->hDC, RGB(0,220,0));
+                        if (Message_Buffer[0]==77 && Message_Buffer[8]==84 && Message_Buffer[11]==82) SetTextColor(Item->hDC, RGB(255,175,0));
+                        if (Message_Buffer[0]==69 && Message_Buffer[1]==77) SetTextColor(Item->hDC, RGB(255,0,0));
                     }
-                    //Informations_vitesses_distance
-                    else if (Message_Buffer[0]==73) {
-                        MESSAGE_BRUSH = CreateSolidBrush(RGB(90,255,150));
-                        SetBkColor(Item->hDC, RGB(90,255,150));
-                        FillRect(Item->hDC, &Item->rcItem, (HBRUSH)MESSAGE_BRUSH);
-                        DeleteObject(MESSAGE_BRUSH);
-                    }
-                    else if (Message_Buffer[0]==67 && Message_Buffer[14]==78) {
-                        MESSAGE_BRUSH = CreateSolidBrush(RGB(0,0, 255));
-                        SetBkColor(Item->hDC, RGB(0, 0, 255));
-                        FillRect(Item->hDC, &Item->rcItem, (HBRUSH)MESSAGE_BRUSH);
-                        DeleteObject(MESSAGE_BRUSH);
-                    }
-                    else if (Message_Buffer[0]==77 && Message_Buffer[13]==66) {
-                        MESSAGE_BRUSH = CreateSolidBrush(RGB(0,200, 255));
-                        SetBkColor(Item->hDC, RGB(0,200, 255));
-                        FillRect(Item->hDC, &Item->rcItem, (HBRUSH)MESSAGE_BRUSH);
-                        DeleteObject(MESSAGE_BRUSH);
-                    }
-                    else if (Message_Buffer[0]==77 && Message_Buffer[13]==82) {
-                        MESSAGE_BRUSH = CreateSolidBrush(RGB(0,220, 0));
-                        SetBkColor(Item->hDC, RGB(0,220, 0));
-                        FillRect(Item->hDC, &Item->rcItem, (HBRUSH)MESSAGE_BRUSH);
-                        DeleteObject(MESSAGE_BRUSH);
-                    }
-                    else if (Message_Buffer[0]==77 && Message_Buffer[8]==84 && Message_Buffer[11]==82) {
-                        MESSAGE_BRUSH = CreateSolidBrush(RGB(255,175, 0));
-                        SetBkColor(Item->hDC, RGB(255,175, 0));
-                        FillRect(Item->hDC, &Item->rcItem, (HBRUSH)MESSAGE_BRUSH);
-                        DeleteObject(MESSAGE_BRUSH);
-                    }
-                    else if (Message_Buffer[0]==69 && Message_Buffer[1]==77) {
-                        MESSAGE_BRUSH = CreateSolidBrush(RGB(255,0, 0));
-                        SetBkColor(Item->hDC, RGB(255,0, 0));
-                        FillRect(Item->hDC, &Item->rcItem, (HBRUSH)MESSAGE_BRUSH);
-                        DeleteObject(MESSAGE_BRUSH);
-                    }
-                    else {
-                        MESSAGE_BRUSH = CreateSolidBrush(RGB(0,0, 0));
-                        SetBkColor(Item->hDC, RGB(0, 0, 0));
-                        FillRect(Item->hDC, &Item->rcItem, (HBRUSH)MESSAGE_BRUSH);
-                        DeleteObject(MESSAGE_BRUSH);
-                    }
+                    TabbedTextOut(Item->hDC,Item->rcItem.left, Item->rcItem.top,(LPCSTR)Message_Buffer,len,13,(LPINT)&tabs,140);
                 }
-                else
-                {
-                    SetTextColor(Item->hDC, RGB(0,0,0));
-                    SetBkColor(Item->hDC, RGB(220, 220, 220));
-                    FillRect(Item->hDC, &Item->rcItem, (HBRUSH)Gray_Brush);
-                    if (Message_Buffer[0]==73) SetTextColor(Item->hDC, RGB(90,255,150));
-                    if (Message_Buffer[0]==68 && Message_Buffer[1]==65) SetTextColor(Item->hDC, RGB(255,90,215));
-                    if (Message_Buffer[0]==67 && Message_Buffer[14]==77) SetTextColor(Item->hDC, RGB(157,0,255));
-                    if (Message_Buffer[0]==67 && Message_Buffer[14]==78) SetTextColor(Item->hDC, RGB(0,0,255));
-                    if (Message_Buffer[0]==77 && Message_Buffer[13]==66) SetTextColor(Item->hDC, RGB(0,200,255));
-                    if (Message_Buffer[0]==77 && Message_Buffer[13]==82) SetTextColor(Item->hDC, RGB(0,220,0));
-                    if (Message_Buffer[0]==77 && Message_Buffer[8]==84 && Message_Buffer[11]==82) SetTextColor(Item->hDC, RGB(255,175,0));
-                    if (Message_Buffer[0]==69 && Message_Buffer[1]==77) SetTextColor(Item->hDC, RGB(255,0,0));
-                }
-                TabbedTextOut(Item->hDC,Item->rcItem.left, Item->rcItem.top,(LPCSTR)Message_Buffer,len,13,(LPINT)&tabs,140);
-//                printf("%s\n",Message_Buffer);
-//                TextOut(Item->hDC,Item->rcItem.left, Item->rcItem.top,(LPCSTR)Message_Buffer,len);
             return TRUE;
         case WM_PAINT:
             hdc = BeginPaint (hwndm, &ps);
@@ -474,20 +492,20 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     RegisterClassEx(&wc);
     MainWindow = CreateWindowEx(WS_EX_CLIENTEDGE,g_szClassName,"JRUGC - Outil interne THIF de décodage des JRU - V2.2.0",WS_OVERLAPPEDWINDOW|WS_MAXIMIZE,0, 0, 1700, 1000,NULL, NULL, hInstance, NULL);
     MessageWindow = CreateWindowEx(0,"LISTBOX" ,"Data",WS_CHILD |WS_VSCROLL |WS_BORDER|WS_THICKFRAME | LBS_USETABSTOPS | LBS_NOTIFY | LBS_HASSTRINGS | LBS_OWNERDRAWFIXED,15,70,1450,450,MainWindow,(HMENU) NULL,hInstance,NULL);
+    SendMessage(MessageWindow,LB_RESETCONTENT,0,0);
     ProgressBarWindow = CreateWindowEx(0,PROGRESS_CLASS,NULL,WS_CHILD |WS_BORDER |PBS_SMOOTH,200,0,250,25,MainWindow,(HMENU) NULL,hInstance,NULL);
     SendMessage(MessageWindow,WM_SETFONT,(WPARAM)Main_Font,(LPARAM)TRUE);
     ShowWindow(MainWindow, 3);
     ShowWindow(MessageWindow, nCmdShow);
     ShowWindow(ProgressBarWindow, nCmdShow);
-
     while (GetMessage(&Msg, NULL, 0, 0)>0)
     {
         if (Msg.message==WM_KEYDOWN) {
             if (Msg.wParam==13) {
+                SendMessage(MessageWindow,LB_RESETCONTENT,0,0);
                 bru_file();
-                file_length=pos;
+                printf("SWITCH\n");
                 compile_file_read();
-                printf("Done\n");
             }
             if (Msg.wParam==VK_SHIFT) shift = true;
             if (Msg.wParam==VK_CONTROL) control = true;
