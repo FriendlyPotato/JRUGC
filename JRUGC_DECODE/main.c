@@ -7,6 +7,7 @@
 #include <wingdi.h>
 #include <CommCtrl.h>
 #include <stdbool.h>
+#include <time.h>
 
 //Size of the buffer to read the entire file
 #define Master_Bluffer_Size 115000000
@@ -15,7 +16,7 @@
 //Size of the buffer to store the message
 #define Message_Buffer_Size 300
 //Size of the buffer to store the message details permanently
-#define Details_Buffer_Size 500000
+#define Details_Buffer_Size 5000000
 //Size of the buffer to store the message details temporarily
 #define Details_Bindec_Buffer_Size 10
 
@@ -38,6 +39,9 @@ int path_length;
 long long file_length;
 long long pos;
 int treated=0;
+
+
+
 HWND MainWindow,MessageWindow,ProgressBarWindow,QuitButtonWindow,MessageHeaderWindow,FromWindow,ToWindow,TimeWindow,DistanceWindow,SpeedWindow;
 HFONT Main_Font;
 HBRUSH Main_Brush,Gray_Brush,Orange_Edit_Brush,Green_Edit_Brush,Purple_Edit_Brush,Background_brush;
@@ -95,7 +99,8 @@ return result;
 }
 
 void details_bindec(int length) {
-
+    sprintf(Details_Bindec_Buffer,"%ld;",bindec(length));
+    strcat(Details_Buffer,Details_Bindec_Buffer);
 }
 
 void bru_file_decode(char* src) {
@@ -144,6 +149,7 @@ void bru_file() {
 void compile_file_read() {
     SendMessage(ProgressBarWindow,PBM_SETPOS,0,0);
     ShowWindow(ProgressBarWindow, 1);
+    int reference_tts,delta_tts;
     char* Id_Name_Buffer = malloc(25*sizeof(char));
     char* List_Buffer = malloc(Message_Buffer_Size*sizeof(char));
     char* Q_DIR_Buffer = malloc(10*sizeof(char));
@@ -151,7 +157,13 @@ void compile_file_read() {
     char* Driver_Id_Buffer = malloc(10*sizeof(char));
     char* M_LEVEL_Buffer = malloc(10*sizeof(char));
     char* M_MODE_Buffer = malloc(17*sizeof(char));
+    char* Distance_Time_Details_Buffer = malloc(61*sizeof(char));
     double q_scale;
+    struct tm reference_timestamp = {0};
+    struct tm current_timestamp = {0};
+    reference_timestamp.tm_isdst=-1;
+    current_timestamp.tm_isdst=-1;
+
     Compiled_File = fopen(strcat(Path_Buffer,"compile.txt"),"r");
     Path_Buffer[path_length]='\0';
     fgets(Master_Bluffer,file_length,Compiled_File);
@@ -208,13 +220,19 @@ void compile_file_read() {
             sprintf(Id_Name_Buffer,"GENERAL_MESSAGE");
             break;
         }
-        int year = bindec(7);
-        int month = bindec(4);
-        int day = bindec(5);
-        int hour = bindec(5);
-        int minute = bindec(6);
-        int second = bindec(6);
+        current_timestamp.tm_year = bindec(7)+100;
+        current_timestamp.tm_mon = bindec(4)-1;
+        current_timestamp.tm_mday = bindec(5);
+        current_timestamp.tm_hour = bindec(5);
+        current_timestamp.tm_min = bindec(6);
+        current_timestamp.tm_sec = bindec(6);
         int tts = 50*bindec(5);
+        delta_tts=tts-reference_tts;
+        unsigned long long delta_time = (unsigned long long)(1000*(unsigned long long)difftime(mktime(&current_timestamp),mktime(&reference_timestamp)))+(unsigned long long)(delta_tts);
+        reference_timestamp = current_timestamp;
+        reference_tts=tts;
+        sprintf(Distance_Time_Details_Buffer,"%030llu%030llu\n",delta_time,delta_time);
+        strcat(Details_Buffer,Distance_Time_Details_Buffer);
         int q_scale_read = bindec(2);
         if (q_scale_read==1) q_scale = 1.0;
         if (q_scale_read==0) q_scale = 0.1;
@@ -321,51 +339,18 @@ void compile_file_read() {
                 sprintf(M_MODE_Buffer,"Passive Shunting");
             break;
         }
-        pos+=length-treated;
-        sprintf(List_Buffer,"%s\t%02d/%02d/%02d  %02d:%02d:%02d:%03d    %.1f\t%d\t%d\t%d m\t%s/%s\t%d/%d\t%d km/h\t%s\t%s\t%s\t%s",Id_Name_Buffer,day,month,year,hour,minute,second,tts,q_scale,nid_c,nid_bg,d_lrbg,Q_DIR_Buffer,Q_DLRBG_Buffer,l_doubtunder,l_doubtover,v_train,Driver_Id_Buffer,Hexdec_Buffer,M_LEVEL_Buffer,M_MODE_Buffer);
+        sprintf(List_Buffer,"%s\t%02d/%02d/%02d  %02d:%02d:%02d:%03d    %.1f\t%d\t%d\t%d m\t%s/%s\t%d/%d\t%d km/h\t%s\t%s\t%s\t%s",Id_Name_Buffer,current_timestamp.tm_mday,current_timestamp.tm_mon+1,current_timestamp.tm_year-100,current_timestamp.tm_hour,current_timestamp.tm_min,current_timestamp.tm_sec,tts,q_scale,nid_c,nid_bg,d_lrbg,Q_DIR_Buffer,Q_DLRBG_Buffer,l_doubtunder,l_doubtover,v_train,Driver_Id_Buffer,Hexdec_Buffer,M_LEVEL_Buffer,M_MODE_Buffer);
         int index = SendMessage(MessageWindow,LB_ADDSTRING,(WPARAM)0, (LPARAM)List_Buffer);
         SendMessage(MessageWindow,LB_SETITEMDATA,index,pos);
         SendMessage(ProgressBarWindow,PBM_SETPOS,(int)(100*pos/file_length),0);
         UpdateWindow(ProgressBarWindow);
-        switch(id) {
-            case 199:
-            sprintf(Id_Name_Buffer,"CHANGEMENT_DE_MODE");
-
-            break;
-            case 200:
-            sprintf(Id_Name_Buffer,"CHANGEMENT_DE_NIVEAU");
-            break;
-            case 198:
-            sprintf(Id_Name_Buffer,"INFO_VITESSES_DISTANCE");
-            break;
-            case 2:
-            sprintf(Id_Name_Buffer,"DATA_ENTRY_COMPLETED");
-            break;
-            case 3:
-            sprintf(Id_Name_Buffer,"EMERGENCY_BRAKE_STATE");
-            break;
-            case 6:
-            sprintf(Id_Name_Buffer,"MESSAGE_FROM_BALISE");
-            break;
-            case 9:
-            sprintf(Id_Name_Buffer,"MESSAGE_FROM_RBC");
-            break;
-            case 10:
-            sprintf(Id_Name_Buffer,"MESSAGE_TO_RBC");
-            break;
-            case 15:
-            sprintf(Id_Name_Buffer,"PLAIN TEXT MESSAGE");
-            break;
-            case 11:
-            sprintf(Id_Name_Buffer,"DRIVER_ACTIONS");
-            break;
-            case 5:
-            sprintf(Id_Name_Buffer,"EVENTS");
-            break;
-            case 1:
-            sprintf(Id_Name_Buffer,"GENERAL_MESSAGE");
-            break;
-        }
+//        switch(id) {
+//            case 199:
+//            details_bindec(4);
+//            details_bindec(2);
+//            break;
+//        }
+        pos+=length-treated;
     }
     SendMessage(MessageWindow,WM_SETREDRAW,1,0);
     free(Id_Name_Buffer);
@@ -375,6 +360,7 @@ void compile_file_read() {
     free(Driver_Id_Buffer);
     free(M_LEVEL_Buffer);
     free(M_MODE_Buffer);
+    free(Distance_Time_Details_Buffer);
     pos=0;
     ShowWindow(ProgressBarWindow, 0);
     Detailed_File = fopen(strcat(Path_Buffer,"details.txt"),"w+");
@@ -573,6 +559,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     Details_Bindec_Buffer = malloc(Details_Bindec_Buffer_Size*sizeof(char));
 
     sprintf(Path_Buffer,"C:\\Users\\ugc\\Desktop\\43052170116_JRU\\flash24h\\");
+    Details_Buffer[0]='\0';
+
     wc.cbSize        = sizeof(WNDCLASSEX);
     wc.style         = 0;
     wc.lpfnWndProc   = WndProc;

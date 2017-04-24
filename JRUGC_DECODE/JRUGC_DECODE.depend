@@ -1,5 +1,5 @@
 # depslib dependency file v1.0
-1493034018 source:c:\users\ugc\documents\demandes\pvb\jrugc\jrugc_decode\main.c
+1493048542 source:c:\users\ugc\documents\demandes\pvb\jrugc\jrugc_decode\main.c
 	<stdio.h>
 	<stdlib.h>
 	<dirent.h>
@@ -9,4 +9,5 @@
 	<wingdi.h>
 	<CommCtrl.h>
 	<stdbool.h>
+	<time.h>
 
