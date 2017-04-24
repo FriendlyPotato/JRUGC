@@ -1,10 +1,11 @@
 # depslib dependency file v1.0
-1492798902 source:c:\users\ugc\documents\demandes\pvb\jrugc\jrugc_decode\main.c
+1493034018 source:c:\users\ugc\documents\demandes\pvb\jrugc\jrugc_decode\main.c
 	<stdio.h>
 	<stdlib.h>
 	<dirent.h>
 	<string.h>
 	<windows.h>
+	<winuser.h>
 	<wingdi.h>
 	<CommCtrl.h>
 	<stdbool.h>
