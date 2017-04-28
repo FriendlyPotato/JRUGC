@@ -37,9 +37,9 @@ FILE* Detailed_File;
 FILE* Compiled_File;
 int path_length;
 long long file_length;
-long long pos;
+long long General_Position;
+long long Details_Position;
 int treated=0;
-
 
 
 HWND MainWindow,MessageWindow,ProgressBarWindow,QuitButtonWindow,MessageHeaderWindow,FromWindow,ToWindow,TimeWindow,DistanceWindow,SpeedWindow;
@@ -51,12 +51,12 @@ const char g_szClassName[] = "myWindowClass";
 
 
 void appendNumber(int value){
-    long i;
-    for(i=pos+7;i>=pos;i--){
+    long long i;
+    for(i=General_Position+7;i>=General_Position;i--){
         Master_Bluffer[i] = (value & 1)+48;
         value >>= 1;
     }
-    pos += 8;
+    General_Position += 8;
 }
 
 long power(int degree)
@@ -77,13 +77,13 @@ void hexdec(int length) {
     int i = 0;
     int num = 0;
     do {
-        int b = ((Master_Bluffer[pos+i])=='1'?1:0);
+        int b = ((Master_Bluffer[General_Position+i])=='1'?1:0);
         i++;
         num = (num<<1)|b;
     } while (i<length);
     Hexdec_Buffer[length]='\0';
     sprintf(Hexdec_Buffer,"%X",num);
-    pos+=length;
+    General_Position+=length;
     treated+=length;
 }
 
@@ -91,9 +91,9 @@ long bindec(int length) {
 int i;
 long result=0;
     for (i=0;i<length;i++) {
-        if ((Master_Bluffer[i+pos]!=48)) result+=power(length-i-1);
+        if ((Master_Bluffer[i+General_Position]!=48)) result+=power(length-i-1);
     }
-pos+=length;
+General_Position+=length;
 treated+=length;
 return result;
 }
@@ -111,7 +111,7 @@ void bru_file_decode(char* src) {
         i++;
         if (i>129 && ((i-130)%16)<14) {
             appendNumber(c);
-            Master_Bluffer[pos] = '\0';
+            Master_Bluffer[General_Position] = '\0';
         }
     }
     fclose(P);
@@ -119,7 +119,7 @@ void bru_file_decode(char* src) {
 
 void bru_file() {
     path_length = strlen(Path_Buffer);
-    pos=0;
+    General_Position=0;
     DIR *dir;
     Compiled_File = fopen(strcat(Path_Buffer,"compile.txt"),"r");
     Path_Buffer[path_length]='\0';
@@ -136,8 +136,8 @@ void bru_file() {
         }
         closedir (dir);
         fprintf(Compiled_File,"%s",Master_Bluffer);
-        file_length=pos;
-        pos = 0;
+        file_length=General_Position;
+        General_Position = 0;
     } else {
         fseek(Compiled_File,0,SEEK_END);
         file_length=ftell(Compiled_File);
@@ -147,9 +147,10 @@ void bru_file() {
 }
 
 void compile_file_read() {
+    MSG Escape_Message;
     SendMessage(ProgressBarWindow,PBM_SETPOS,0,0);
     ShowWindow(ProgressBarWindow, 1);
-    int reference_tts,delta_tts;
+    int reference_tts,delta_tts,index=-1,v_train=0;
     char* Id_Name_Buffer = malloc(25*sizeof(char));
     char* List_Buffer = malloc(Message_Buffer_Size*sizeof(char));
     char* Q_DIR_Buffer = malloc(10*sizeof(char));
@@ -157,8 +158,8 @@ void compile_file_read() {
     char* Driver_Id_Buffer = malloc(10*sizeof(char));
     char* M_LEVEL_Buffer = malloc(10*sizeof(char));
     char* M_MODE_Buffer = malloc(17*sizeof(char));
-    char* Distance_Time_Details_Buffer = malloc(61*sizeof(char));
     double q_scale;
+    unsigned long long delta_time=0,delta_distance=0;
     struct tm reference_timestamp = {0};
     struct tm current_timestamp = {0};
     reference_timestamp.tm_isdst=-1;
@@ -170,12 +171,18 @@ void compile_file_read() {
     fclose(Compiled_File);
     SendMessage(MessageWindow,LB_INITSTORAGE,(WPARAM)373333,(WPARAM)55999950);
     SendMessage(MessageWindow,WM_SETREDRAW,0,0);
-    while (pos<file_length) {
+
+    Detailed_File = fopen(strcat(Path_Buffer,"details.txt"),"w+");
+    Path_Buffer[path_length]='\0';
+
+    while (General_Position<file_length) {
         treated=0;
         int id = bindec(8);
         int l_message = bindec(10);
         int length = 112*((int)((l_message+1)/14)+1);
         if (length==8288) {
+            PeekMessage(&Escape_Message,NULL,256,256,PM_REMOVE);
+            if (Escape_Message.wParam==27) break;
             bindec(94);
             continue;
         }
@@ -220,6 +227,7 @@ void compile_file_read() {
             sprintf(Id_Name_Buffer,"GENERAL_MESSAGE");
             break;
         }
+
         current_timestamp.tm_year = bindec(7)+100;
         current_timestamp.tm_mon = bindec(4)-1;
         current_timestamp.tm_mday = bindec(5);
@@ -228,11 +236,12 @@ void compile_file_read() {
         current_timestamp.tm_sec = bindec(6);
         int tts = 50*bindec(5);
         delta_tts=tts-reference_tts;
-        unsigned long long delta_time = (unsigned long long)(1000*(unsigned long long)difftime(mktime(&current_timestamp),mktime(&reference_timestamp)))+(unsigned long long)(delta_tts);
+
+        delta_time += (unsigned long long)(1000*(unsigned long long)difftime(mktime(&current_timestamp),mktime(&reference_timestamp)))+(unsigned long long)(delta_tts);
         reference_timestamp = current_timestamp;
         reference_tts=tts;
-        sprintf(Distance_Time_Details_Buffer,"%030llu%030llu\n",delta_time,delta_time);
-        strcat(Details_Buffer,Distance_Time_Details_Buffer);
+        delta_distance+=delta_time*v_train;
+        if (index==-1) {fprintf(Detailed_File,"000000000000000000000000000000000000000000000000000000000000\n"); delta_time=0;} else fprintf(Detailed_File,"%030I64u%030I64u\n",delta_time,delta_distance);
         int q_scale_read = bindec(2);
         if (q_scale_read==1) q_scale = 1.0;
         if (q_scale_read==0) q_scale = 0.1;
@@ -266,10 +275,10 @@ void compile_file_read() {
         }
         int l_doubtover = q_scale*bindec(15);
         int l_doubtunder = q_scale*bindec(15);
-        int v_train = 5*bindec(7);
+        v_train = 5*bindec(7);
         int id_driver = bindec(32);
         if (id_driver > 999999 && id_driver < 10000000) sprintf(Driver_Id_Buffer,"%dX",id_driver); else if (id_driver==-1) sprintf(Driver_Id_Buffer,"NC"); else sprintf(Driver_Id_Buffer,"%d",id_driver);
-        hexdec(28); pos+=4; treated+=4;
+        hexdec(28); General_Position+=4; treated+=4;
         int m_level = bindec(3);
         switch(m_level) {
             case 0:
@@ -340,17 +349,11 @@ void compile_file_read() {
             break;
         }
         sprintf(List_Buffer,"%s\t%02d/%02d/%02d  %02d:%02d:%02d:%03d    %.1f\t%d\t%d\t%d m\t%s/%s\t%d/%d\t%d km/h\t%s\t%s\t%s\t%s",Id_Name_Buffer,current_timestamp.tm_mday,current_timestamp.tm_mon+1,current_timestamp.tm_year-100,current_timestamp.tm_hour,current_timestamp.tm_min,current_timestamp.tm_sec,tts,q_scale,nid_c,nid_bg,d_lrbg,Q_DIR_Buffer,Q_DLRBG_Buffer,l_doubtunder,l_doubtover,v_train,Driver_Id_Buffer,Hexdec_Buffer,M_LEVEL_Buffer,M_MODE_Buffer);
-        int index = SendMessage(MessageWindow,LB_ADDSTRING,(WPARAM)0, (LPARAM)List_Buffer);
-        SendMessage(MessageWindow,LB_SETITEMDATA,index,pos);
-        SendMessage(ProgressBarWindow,PBM_SETPOS,(int)(100*pos/file_length),0);
+        index = SendMessage(MessageWindow,LB_ADDSTRING,(WPARAM)0, (LPARAM)List_Buffer);
+        SendMessage(MessageWindow,LB_SETITEMDATA,index,General_Position);
+        SendMessage(ProgressBarWindow,PBM_SETPOS,(int)(100*General_Position/file_length),0);
         UpdateWindow(ProgressBarWindow);
-//        switch(id) {
-//            case 199:
-//            details_bindec(4);
-//            details_bindec(2);
-//            break;
-//        }
-        pos+=length-treated;
+        General_Position+=length-treated;
     }
     SendMessage(MessageWindow,WM_SETREDRAW,1,0);
     free(Id_Name_Buffer);
@@ -360,12 +363,8 @@ void compile_file_read() {
     free(Driver_Id_Buffer);
     free(M_LEVEL_Buffer);
     free(M_MODE_Buffer);
-    free(Distance_Time_Details_Buffer);
-    pos=0;
+    General_Position=0;
     ShowWindow(ProgressBarWindow, 0);
-    Detailed_File = fopen(strcat(Path_Buffer,"details.txt"),"w+");
-    Path_Buffer[path_length]='\0';
-    fprintf(Detailed_File,"%s",Details_Buffer);
     fclose(Detailed_File);
 }
 
@@ -555,11 +554,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     Path_Buffer = malloc(Path_Buffer_Size*sizeof(char));
     Hexdec_Buffer = malloc(32*sizeof(char));
     Message_Buffer = malloc(Message_Buffer_Size*sizeof(char));
-    Details_Buffer = malloc(Details_Buffer_Size*sizeof(char));
-    Details_Bindec_Buffer = malloc(Details_Bindec_Buffer_Size*sizeof(char));
 
     sprintf(Path_Buffer,"C:\\Users\\ugc\\Desktop\\43052170116_JRU\\flash24h\\");
-    Details_Buffer[0]='\0';
 
     wc.cbSize        = sizeof(WNDCLASSEX);
     wc.style         = 0;
@@ -625,7 +621,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         DispatchMessage(&Msg);
     }
     free(Master_Bluffer);
-    free(Details_Buffer);
     free(Message_Buffer);
     free(Path_Buffer);
     free(Hexdec_Buffer);
