@@ -165,7 +165,7 @@ void compile_file_read() {
     char* M_LEVEL_Buffer = malloc(10*sizeof(char));
     char* M_MODE_Buffer = malloc(17*sizeof(char));
     double q_scale;
-    unsigned long long delta_time=0,delta_distance=0;
+    unsigned long long delta_time=0,delta_distance=0,time_increment=0;
     unsigned long long Detailed_Position = 0;
     struct tm reference_timestamp = {0};
     struct tm current_timestamp = {0};
@@ -244,10 +244,11 @@ void compile_file_read() {
         int tts = 50*bindec(5);
         delta_tts=tts-reference_tts;
 
-        delta_time += (unsigned long long)(1000*(unsigned long long)difftime(mktime(&current_timestamp),mktime(&reference_timestamp)))+(unsigned long long)(delta_tts);
+        time_increment = (unsigned long long)(1000*(unsigned long long)difftime(mktime(&current_timestamp),mktime(&reference_timestamp)))+(unsigned long long)(delta_tts);
+        delta_time +=time_increment;
         reference_timestamp = current_timestamp;
         reference_tts=tts;
-        delta_distance+=(delta_time*v_train)/3600;
+        delta_distance+=(time_increment*v_train);
         if (index==-1) {fprintf(Detailed_File,"000000000000000000000000000000000000000000000000000000000000"); delta_time=0;} else fprintf(Detailed_File,"%030I64u%030I64u",delta_time,delta_distance);
         Detailed_Position +=60;
         int q_scale_read = bindec(2);
@@ -446,7 +447,7 @@ LRESULT CALLBACK WndProc(HWND hwndm, UINT msg, WPARAM wParam, LPARAM lParam) {
                         SetTextColor(Item->hDC, RGB(0,0,0));
                     }
                     else {
-                        if (Item->itemState & ODS_FOCUS || Item->itemState & ODS_SELECTED)
+                        if (Item->itemState & ODS_FOCUS || Item->itemState & ODS_SELECTED || Item->itemID==Reference_Message)
                         {
                             SetTextColor(Item->hDC, RGB(255,255,255));
                             if (Message_Buffer[0]==67 && Message_Buffer[14]==77) {
@@ -575,6 +576,12 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     unsigned long long Current_Distance;
     unsigned long long Reference_Time;
     unsigned long long Reference_Distance;
+    unsigned long long Delta_Time;
+    unsigned long long Delta_Distance;
+    unsigned long long Average_Speed;
+    int Delta_Hour;
+    int Delta_Minute;
+    int Delta_Second;
 
     Main_Font = CreateFont(15,6,0,0,600,FALSE,FALSE,FALSE,ANSI_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY, DEFAULT_PITCH,TEXT("Arial"));
 
@@ -640,10 +647,39 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     {
         Message_Position = SendMessage(MessageWindow,LB_GETCURSEL,0,0);
         Details_Position = SendMessage(MessageWindow,LB_GETITEMDATA,Message_Position,0);
-        if (Reference_Message>=0) {
-            Current_Time = Get_Reference_Time(Details_Position);
-            Current_Distance = Get_Reference_Distance(Details_Position);
+
+        if (Current_Message.message == SEL_CHANGE_MESSAGE) {
+            if (Reference_Message>=0) {
+                Delta_Hour = 0;
+                Delta_Minute = 0;
+                Delta_Second = 0;
+                Current_Time = Get_Reference_Time(Details_Position);
+                Current_Distance = Get_Reference_Distance(Details_Position);
+                if (Reference_Message<=Message_Position) {
+                    Delta_Time = Current_Time-Reference_Time;
+                    Delta_Distance = Current_Distance-Reference_Distance;
+                }
+                else {
+                    Delta_Time = Reference_Time-Current_Time;
+                    Delta_Distance = Reference_Distance-Current_Distance;
+                }
+
+                if (Delta_Time>0) Average_Speed = (3600*Delta_Distance/Delta_Time); else Average_Speed=0;
+
+                while (Delta_Time>3600000) {Delta_Time-=3600000; Delta_Hour++;}
+                while (Delta_Time>60000) {Delta_Time-=60000; Delta_Minute++;}
+                while (Delta_Time>1000) {Delta_Time-=1000; Delta_Second++;}
+
+                sprintf(TimeWindow_Buffer,"%02d h %02d m %02d s %03I64u ms",Delta_Hour,Delta_Minute,Delta_Second,Delta_Time);
+                sprintf(DistanceWindow_Buffer,"%I64u km %03I64u m",Delta_Distance/3600000,(Delta_Distance/3600)%1000);
+                sprintf(SpeedWindow_Buffer,"%I64u km/h",Average_Speed/3600);
+
+                SetWindowText(TimeWindow,TimeWindow_Buffer);
+                SetWindowText(DistanceWindow,DistanceWindow_Buffer);
+                SetWindowText(SpeedWindow,SpeedWindow_Buffer);
+            }
         }
+
         if (Current_Message.message==WM_KEYDOWN) {
             if (Current_Message.wParam==13) {
                 SendMessage(MessageWindow,LB_RESETCONTENT,0,0);
@@ -665,6 +701,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             if (Current_Message.hwnd==MessageWindow) Reference_Message = Message_Position;
             Reference_Time = Get_Reference_Time(Details_Position);
             Reference_Distance = Get_Reference_Distance(Details_Position);
+            SetWindowText(TimeWindow,"00 h 00 m 00 s 00 ms");
+            SetWindowText(DistanceWindow,"0 km 000 m");
+            SetWindowText(SpeedWindow,"0.0 km/h");
+            RedrawWindow(MessageWindow,NULL,NULL,RDW_INVALIDATE);
         }
         TranslateMessage(&Current_Message);
         DispatchMessage(&Current_Message);
