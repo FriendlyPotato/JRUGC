@@ -25,7 +25,7 @@
 #define Window_Buffer_Size 31
 
 //Code for clicked button message
-#define BN_CLICKED_MESSAGE 9998
+#define BTN_CLICKED_MESSAGE 9998
 //Code for selection changed message
 #define SEL_CHANGE_MESSAGE 9999
 
@@ -48,7 +48,7 @@ int treated=0;
 int Message_Position;
 int Reference_Message=-1;
 
-HWND MainWindow,MessageWindow,ProgressBarWindow,QuitButtonWindow,MessageHeaderWindow,FromWindow,ToWindow,TimeWindow,DistanceWindow,SpeedWindow;
+HWND MainWindow,MessageWindow,ProgressBarWindow,QuitButtonWindow,MessageHeaderWindow,FromWindow,ToWindow,TimeWindow,DistanceWindow,SpeedWindow,SetButtonWindow,GoToButtonWindow,ClearButtonWindow;
 HFONT Main_Font;
 HBRUSH Main_Brush,Gray_Brush,Orange_Edit_Brush,Green_Edit_Brush,Purple_Edit_Brush,Background_brush;
 
@@ -249,7 +249,7 @@ void compile_file_read() {
         reference_timestamp = current_timestamp;
         reference_tts=tts;
         delta_distance+=(time_increment*v_train);
-        if (index==-1) {fprintf(Detailed_File,"000000000000000000000000000000000000000000000000000000000000"); delta_time=0;} else fprintf(Detailed_File,"%030I64u%030I64u",delta_time,delta_distance);
+        if (index==-1 || current_timestamp.tm_year ==172) {fprintf(Detailed_File,"000000000000000000000000000000000000000000000000000000000000"); delta_time=0;} else fprintf(Detailed_File,"%030I64u%030I64u",delta_time,delta_distance);
         Detailed_Position +=60;
         int q_scale_read = bindec(2);
         if (q_scale_read==1) q_scale = 1.0;
@@ -414,7 +414,7 @@ LRESULT CALLBACK WndProc(HWND hwndm, UINT msg, WPARAM wParam, LPARAM lParam) {
                 return true;
             }
             if (HIWORD(wParam)==BN_CLICKED) {
-                PostMessage(hwndm,BN_CLICKED_MESSAGE,(WPARAM)lParam,(LPARAM)0);
+                PostMessage(hwndm,BTN_CLICKED_MESSAGE,(WPARAM)lParam,(LPARAM)0);
                 return true;
             }
         return DefWindowProc(hwndm, msg, wParam, lParam);
@@ -613,7 +613,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     wc.hIconSm       = LoadIcon(hInstance,"MAINICON");
     RegisterClassEx(&wc);
 
-    MainWindow = CreateWindowEx(WS_EX_CLIENTEDGE,g_szClassName,"JRUGC - Outil interne THIF de décodage des JRU - V2.2.0",WS_OVERLAPPEDWINDOW|WS_MAXIMIZE,0, 0, 1700, 1000,NULL, NULL, hInstance, NULL);
+    MainWindow = CreateWindowEx(WS_EX_CLIENTEDGE,g_szClassName,"JRUGC - Outil interne THIF de décodage des JRU - V 3.0.0-P",WS_OVERLAPPEDWINDOW|WS_MAXIMIZE,0, 0, 1700, 1000,NULL, NULL, hInstance, NULL);
     MessageWindow = CreateWindowEx(0,"LISTBOX" ,"Data",WS_CHILD |WS_VSCROLL |WS_BORDER|WS_THICKFRAME | LBS_USETABSTOPS | LBS_NOTIFY | LBS_HASSTRINGS | LBS_OWNERDRAWFIXED,15,70,1450,450,MainWindow,(HMENU) NULL,hInstance,NULL);
     ProgressBarWindow = CreateWindowEx(0,PROGRESS_CLASS,NULL,WS_CHILD |WS_BORDER |PBS_SMOOTH,200,0,250,25,MainWindow,(HMENU) NULL,hInstance,NULL);
     QuitButtonWindow = CreateWindowEx((DWORD)0,"BUTTON","QUIT",WS_CHILD |WS_BORDER,1595,5,75,25,MainWindow,(HMENU) NULL,hInstance,NULL);
@@ -623,6 +623,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     TimeWindow = CreateWindowEx((DWORD)0,"EDIT","No Reference",WS_CHILD |WS_BORDER | ES_READONLY,600,545,200,20,MainWindow,(HMENU) NULL,hInstance,NULL);
     DistanceWindow = CreateWindowEx((DWORD)0,"EDIT","No Reference",WS_CHILD |WS_BORDER | ES_READONLY,850,545,200,20,MainWindow,(HMENU) NULL,hInstance,NULL);
     SpeedWindow = CreateWindowEx((DWORD)0,"EDIT","No Reference",WS_CHILD |WS_BORDER | ES_READONLY,1100,545,200,20,MainWindow,(HMENU) NULL,hInstance,NULL);
+    SetButtonWindow = CreateWindowEx((DWORD)0,"BUTTON","Set",WS_CHILD |WS_BORDER,300,545,50,20,MainWindow,(HMENU) NULL,hInstance,NULL);
+    GoToButtonWindow = CreateWindowEx((DWORD)0,"BUTTON","GoTo",WS_CHILD |WS_BORDER,360,545,50,20,MainWindow,(HMENU) NULL,hInstance,NULL);
+    ClearButtonWindow = CreateWindowEx((DWORD)0,"BUTTON","Clear",WS_CHILD |WS_BORDER,420,545,50,20,MainWindow,(HMENU) NULL,hInstance,NULL);
 
     SendMessage(MessageHeaderWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"Message\tDate        Time                  Scale(m)\tNID_C\tNID_LRBG\tD_LRBG\tD/D\tL+/L-\tV (km/h)\tDRIVER\tTRAIN\tLEVEL\tMODE");
 
@@ -635,6 +638,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     ShowWindow(TimeWindow, nCmdShow);
     ShowWindow(DistanceWindow, nCmdShow);
     ShowWindow(SpeedWindow, nCmdShow);
+    ShowWindow(SetButtonWindow, nCmdShow);
+    ShowWindow(GoToButtonWindow, nCmdShow);
+    ShowWindow(ClearButtonWindow, nCmdShow);
 
     SendMessage(MessageWindow,WM_SETFONT,(WPARAM)Main_Font,(LPARAM)TRUE);
     SendMessage(MessageHeaderWindow,WM_SETFONT,(WPARAM)Main_Font,(LPARAM)TRUE);
@@ -642,6 +648,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     SendMessage(DistanceWindow,WM_SETFONT,(WPARAM)Main_Font,(LPARAM)TRUE);
     SendMessage(TimeWindow,WM_SETFONT,(WPARAM)Main_Font,(LPARAM)TRUE);
     SendMessage(SpeedWindow,WM_SETFONT,(WPARAM)Main_Font,(LPARAM)TRUE);
+    SendMessage(SetButtonWindow,WM_SETFONT,(WPARAM)Main_Font,(LPARAM)TRUE);
+    SendMessage(GoToButtonWindow,WM_SETFONT,(WPARAM)Main_Font,(LPARAM)TRUE);
+    SendMessage(ClearButtonWindow,WM_SETFONT,(WPARAM)Main_Font,(LPARAM)TRUE);
 
     while (GetMessage(&Current_Message, NULL, 0, 0)>0)
     {
@@ -688,23 +697,37 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             }
             if (Current_Message.wParam==VK_SHIFT) shift = true;
             if (Current_Message.wParam==VK_CONTROL) control = true;
-            if (Current_Message.wParam=='Q') break;
+            if (Current_Message.wParam=='Q' && control) break;
         }
-        if (Current_Message.message==WM_KEYDOWN) {
+        if (Current_Message.message==WM_KEYUP) {
             if (Current_Message.wParam==VK_SHIFT) shift = false;
             if (Current_Message.wParam==VK_CONTROL) control = false;
         }
-        if (Current_Message.message==BN_CLICKED_MESSAGE) {
+        if (Current_Message.message==BTN_CLICKED_MESSAGE) {
             if (Current_Message.wParam==(WPARAM)QuitButtonWindow) break;
         }
-        if (Current_Message.message==WM_LBUTTONDBLCLK) {
-            if (Current_Message.hwnd==MessageWindow) Reference_Message = Message_Position;
+        if (((Current_Message.message==WM_LBUTTONDBLCLK && Current_Message.hwnd==MessageWindow) || (Current_Message.message==WM_KEYDOWN && Current_Message.wParam=='S')) || (Current_Message.message==BTN_CLICKED_MESSAGE && Current_Message.wParam==(WPARAM)SetButtonWindow)) {
+            Reference_Message = Message_Position;
             Reference_Time = Get_Reference_Time(Details_Position);
             Reference_Distance = Get_Reference_Distance(Details_Position);
             SetWindowText(TimeWindow,"00 h 00 m 00 s 00 ms");
             SetWindowText(DistanceWindow,"0 km 000 m");
-            SetWindowText(SpeedWindow,"0.0 km/h");
+            SetWindowText(SpeedWindow,"0 km/h");
             RedrawWindow(MessageWindow,NULL,NULL,RDW_INVALIDATE);
+            continue;
+        }
+        if ((Current_Message.message==WM_KEYDOWN && Current_Message.wParam=='C' && Reference_Message>=0) || (Current_Message.message==BTN_CLICKED_MESSAGE && Current_Message.wParam==(WPARAM)ClearButtonWindow)) {
+            Reference_Message = -1;
+            SetWindowText(TimeWindow,"No Reference");
+            SetWindowText(DistanceWindow,"No Reference");
+            SetWindowText(SpeedWindow,"No Reference");
+            RedrawWindow(MessageWindow,NULL,NULL,RDW_INVALIDATE);
+            continue;
+        }
+        if ((Current_Message.message==WM_KEYDOWN && Current_Message.wParam=='G' && Reference_Message>=0) || (Current_Message.message==BTN_CLICKED_MESSAGE && Current_Message.wParam==(WPARAM)GoToButtonWindow)) {
+            SendMessage(MessageWindow,LB_SETCURSEL,Reference_Message,0);
+            SetFocus(MessageWindow);
+            continue;
         }
         TranslateMessage(&Current_Message);
         DispatchMessage(&Current_Message);
