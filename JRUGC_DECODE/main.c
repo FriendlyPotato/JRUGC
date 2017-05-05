@@ -16,11 +16,13 @@
 //Size of the buffer to store the message
 #define Message_Buffer_Size 300
 //Size of the buffer to store the message details permanently
-#define Details_Buffer_Size 5000000
+#define Details_Buffer_Size 50000000
 //Size of the buffer to store the message details temporarily
 #define Details_Bindec_Buffer_Size 10
 //Size of the buffer to store distance and time informations from detailed file
 #define Details_Data_Buffer_Size 31
+//Size of the buffer to store window texts
+#define Window_Buffer_Size 31
 
 //Code for clicked button message
 #define BN_CLICKED_MESSAGE 9998
@@ -41,7 +43,7 @@ FILE* Compiled_File;
 int path_length;
 long long file_length;
 long long General_Position;
-int Details_Position;
+long long Details_Position;
 int treated=0;
 int Message_Position;
 int Reference_Message=-1;
@@ -164,6 +166,7 @@ void compile_file_read() {
     char* M_MODE_Buffer = malloc(17*sizeof(char));
     double q_scale;
     unsigned long long delta_time=0,delta_distance=0;
+    unsigned long long Detailed_Position = 0;
     struct tm reference_timestamp = {0};
     struct tm current_timestamp = {0};
     reference_timestamp.tm_isdst=-1;
@@ -176,7 +179,6 @@ void compile_file_read() {
     SendMessage(MessageWindow,LB_INITSTORAGE,(WPARAM)373333,(WPARAM)55999950);
     SendMessage(MessageWindow,WM_SETREDRAW,0,0);
 
-    fclose(Detailed_File);
     Detailed_File = fopen(strcat(Path_Buffer,"details.txt"),"w+");
     Path_Buffer[path_length]='\0';
 
@@ -245,8 +247,9 @@ void compile_file_read() {
         delta_time += (unsigned long long)(1000*(unsigned long long)difftime(mktime(&current_timestamp),mktime(&reference_timestamp)))+(unsigned long long)(delta_tts);
         reference_timestamp = current_timestamp;
         reference_tts=tts;
-        delta_distance+=delta_time*v_train;
-        if (index==-1) {fprintf(Detailed_File,"000000000000000000000000000000000000000000000000000000000000\n"); delta_time=0;} else fprintf(Detailed_File,"%030I64u%030I64u\n",delta_time,delta_distance);
+        delta_distance+=(delta_time*v_train)/3600;
+        if (index==-1) {fprintf(Detailed_File,"000000000000000000000000000000000000000000000000000000000000"); delta_time=0;} else fprintf(Detailed_File,"%030I64u%030I64u",delta_time,delta_distance);
+        Detailed_Position +=60;
         int q_scale_read = bindec(2);
         if (q_scale_read==1) q_scale = 1.0;
         if (q_scale_read==0) q_scale = 0.1;
@@ -355,12 +358,13 @@ void compile_file_read() {
         }
         sprintf(List_Buffer,"%s\t%02d/%02d/%02d  %02d:%02d:%02d:%03d    %.1f\t%d\t%d\t%d m\t%s/%s\t%d/%d\t%d km/h\t%s\t%s\t%s\t%s",Id_Name_Buffer,current_timestamp.tm_mday,current_timestamp.tm_mon+1,current_timestamp.tm_year-100,current_timestamp.tm_hour,current_timestamp.tm_min,current_timestamp.tm_sec,tts,q_scale,nid_c,nid_bg,d_lrbg,Q_DIR_Buffer,Q_DLRBG_Buffer,l_doubtunder,l_doubtover,v_train,Driver_Id_Buffer,Hexdec_Buffer,M_LEVEL_Buffer,M_MODE_Buffer);
         index = SendMessage(MessageWindow,LB_ADDSTRING,(WPARAM)0, (LPARAM)List_Buffer);
-        SendMessage(MessageWindow,LB_SETITEMDATA,index,General_Position);
+        SendMessage(MessageWindow,LB_SETITEMDATA,index,Detailed_Position);
         SendMessage(ProgressBarWindow,PBM_SETPOS,(int)(100*General_Position/file_length),0);
         UpdateWindow(ProgressBarWindow);
         General_Position+=length-treated;
     }
     SendMessage(MessageWindow,WM_SETREDRAW,1,0);
+
     free(Id_Name_Buffer);
     free(List_Buffer);
     free(Q_DIR_Buffer);
@@ -368,12 +372,23 @@ void compile_file_read() {
     free(Driver_Id_Buffer);
     free(M_LEVEL_Buffer);
     free(M_MODE_Buffer);
+
+    fseek(Detailed_File,0,SEEK_SET);
+    fgets(Details_Buffer,Details_Buffer_Size,Detailed_File);
+    fclose(Detailed_File);
+
     General_Position=0;
     ShowWindow(ProgressBarWindow, 0);
 }
 
-unsigned long long get_item_data(int offset) {
-    fseek(Detailed_File,offset,SEEK_SET);
+unsigned long long Get_Reference_Time(long long offset) {
+    strncpy(Details_Data_Buffer,&Details_Buffer[offset-60],30*sizeof(char));
+    return atoll(Details_Data_Buffer);
+}
+
+unsigned long long Get_Reference_Distance(long long offset) {
+    strncpy(Details_Data_Buffer,&Details_Buffer[offset-30],30*sizeof(char));
+    return atoll(Details_Data_Buffer);
 }
 
 LRESULT CALLBACK WndProc(HWND hwndm, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -554,14 +569,26 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     Green_Edit_Brush =  CreateSolidBrush(RGB(92,255,97));
     Orange_Edit_Brush = CreateSolidBrush(RGB(255,173,92));
     Purple_Edit_Brush = CreateSolidBrush(RGB(211,145,255));
-    MSG Msg;
+    MSG Current_Message;
     WNDCLASSEX wc;
+    unsigned long long Current_Time;
+    unsigned long long Current_Distance;
+    unsigned long long Reference_Time;
+    unsigned long long Reference_Distance;
 
     Main_Font = CreateFont(15,6,0,0,600,FALSE,FALSE,FALSE,ANSI_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY, DEFAULT_PITCH,TEXT("Arial"));
+
+    char* DistanceWindow_Buffer = malloc(Window_Buffer_Size*sizeof(char));
+    char* TimeWindow_Buffer = malloc(Window_Buffer_Size*sizeof(char));
+    char* SpeedWindow_Buffer = malloc(Window_Buffer_Size*sizeof(char));
+
     Master_Bluffer = malloc(Master_Bluffer_Size*sizeof(char));
+    Details_Buffer = malloc(Details_Buffer_Size*sizeof(char));
     Path_Buffer = malloc(Path_Buffer_Size*sizeof(char));
     Hexdec_Buffer = malloc(32*sizeof(char));
     Message_Buffer = malloc(Message_Buffer_Size*sizeof(char));
+    Details_Data_Buffer = malloc(Details_Data_Buffer_Size*sizeof(char));
+    Details_Data_Buffer[30]='\0';
 
     sprintf(Path_Buffer,"C:\\Users\\ugc\\Desktop\\43052170116_JRU\\flash24h\\");
 
@@ -586,9 +613,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     MessageHeaderWindow = CreateWindowEx(0,"LISTBOX" ,"Data",WS_CHILD |WS_HSCROLL |WS_VSCROLL |WS_BORDER|WS_THICKFRAME | LBS_USETABSTOPS | LBS_OWNERDRAWFIXED | LBS_NOTIFY | LBS_HASSTRINGS,15,30,1450,15,MainWindow,(HMENU) NULL,hInstance,NULL);
     FromWindow = CreateWindowEx((DWORD)0,"EDIT","",WS_CHILD |WS_BORDER,1470,120,200,20,MainWindow,(HMENU) NULL,hInstance,NULL);
     ToWindow = CreateWindowEx((DWORD)0,"EDIT","",WS_CHILD |WS_BORDER,1470,180,200,20,MainWindow,(HMENU) NULL,hInstance,NULL);
-    TimeWindow = CreateWindowEx((DWORD)0,"EDIT","",WS_CHILD |WS_BORDER | ES_READONLY,600,545,200,20,MainWindow,(HMENU) NULL,hInstance,NULL);
-    DistanceWindow = CreateWindowEx((DWORD)0,"EDIT","",WS_CHILD |WS_BORDER | ES_READONLY,850,545,200,20,MainWindow,(HMENU) NULL,hInstance,NULL);
-    SpeedWindow = CreateWindowEx((DWORD)0,"EDIT","",WS_CHILD |WS_BORDER | ES_READONLY,1100,545,200,20,MainWindow,(HMENU) NULL,hInstance,NULL);
+    TimeWindow = CreateWindowEx((DWORD)0,"EDIT","No Reference",WS_CHILD |WS_BORDER | ES_READONLY,600,545,200,20,MainWindow,(HMENU) NULL,hInstance,NULL);
+    DistanceWindow = CreateWindowEx((DWORD)0,"EDIT","No Reference",WS_CHILD |WS_BORDER | ES_READONLY,850,545,200,20,MainWindow,(HMENU) NULL,hInstance,NULL);
+    SpeedWindow = CreateWindowEx((DWORD)0,"EDIT","No Reference",WS_CHILD |WS_BORDER | ES_READONLY,1100,545,200,20,MainWindow,(HMENU) NULL,hInstance,NULL);
 
     SendMessage(MessageHeaderWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"Message\tDate        Time                  Scale(m)\tNID_C\tNID_LRBG\tD_LRBG\tD/D\tL+/L-\tV (km/h)\tDRIVER\tTRAIN\tLEVEL\tMODE");
 
@@ -605,44 +632,58 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     SendMessage(MessageWindow,WM_SETFONT,(WPARAM)Main_Font,(LPARAM)TRUE);
     SendMessage(MessageHeaderWindow,WM_SETFONT,(WPARAM)Main_Font,(LPARAM)TRUE);
     SendMessage(QuitButtonWindow,WM_SETFONT,(WPARAM)Main_Font,(LPARAM)TRUE);
+    SendMessage(DistanceWindow,WM_SETFONT,(WPARAM)Main_Font,(LPARAM)TRUE);
+    SendMessage(TimeWindow,WM_SETFONT,(WPARAM)Main_Font,(LPARAM)TRUE);
+    SendMessage(SpeedWindow,WM_SETFONT,(WPARAM)Main_Font,(LPARAM)TRUE);
 
-    while (GetMessage(&Msg, NULL, 0, 0)>0)
+    while (GetMessage(&Current_Message, NULL, 0, 0)>0)
     {
         Message_Position = SendMessage(MessageWindow,LB_GETCURSEL,0,0);
         Details_Position = SendMessage(MessageWindow,LB_GETITEMDATA,Message_Position,0);
         if (Reference_Message>=0) {
-
+            Current_Time = Get_Reference_Time(Details_Position);
+            Current_Distance = Get_Reference_Distance(Details_Position);
         }
-        if (Msg.message==WM_KEYDOWN) {
-            if (Msg.wParam==13) {
+        if (Current_Message.message==WM_KEYDOWN) {
+            if (Current_Message.wParam==13) {
                 SendMessage(MessageWindow,LB_RESETCONTENT,0,0);
                 bru_file();
                 compile_file_read();
             }
-            if (Msg.wParam==VK_SHIFT) shift = true;
-            if (Msg.wParam==VK_CONTROL) control = true;
-            if (Msg.wParam=='Q') break;
+            if (Current_Message.wParam==VK_SHIFT) shift = true;
+            if (Current_Message.wParam==VK_CONTROL) control = true;
+            if (Current_Message.wParam=='Q') break;
         }
-        if (Msg.message==WM_KEYDOWN) {
-            if (Msg.wParam==VK_SHIFT) shift = false;
-            if (Msg.wParam==VK_CONTROL) control = false;
+        if (Current_Message.message==WM_KEYDOWN) {
+            if (Current_Message.wParam==VK_SHIFT) shift = false;
+            if (Current_Message.wParam==VK_CONTROL) control = false;
         }
-        if (Msg.message==BN_CLICKED_MESSAGE) {
-            if (Msg.wParam==(WPARAM)QuitButtonWindow) break;
+        if (Current_Message.message==BN_CLICKED_MESSAGE) {
+            if (Current_Message.wParam==(WPARAM)QuitButtonWindow) break;
         }
-        if (Msg.message==WM_LBUTTONDBLCLK) {
-            if (Msg.hwnd==MessageWindow) Reference_Message = Message_Position;
+        if (Current_Message.message==WM_LBUTTONDBLCLK) {
+            if (Current_Message.hwnd==MessageWindow) Reference_Message = Message_Position;
+            Reference_Time = Get_Reference_Time(Details_Position);
+            Reference_Distance = Get_Reference_Distance(Details_Position);
         }
-        TranslateMessage(&Msg);
-        DispatchMessage(&Msg);
+        TranslateMessage(&Current_Message);
+        DispatchMessage(&Current_Message);
     }
+
     free(Master_Bluffer);
+    free(Details_Buffer);
     free(Message_Buffer);
     free(Path_Buffer);
     free(Hexdec_Buffer);
+    free(Details_Data_Buffer);
+    free(DistanceWindow_Buffer);
+    free(TimeWindow_Buffer);
+    free(SpeedWindow_Buffer);
+
     DeleteObject(Gray_Brush);
     DeleteObject(Main_Brush);
     DeleteObject(Main_Font);
+
     return 0;
 }
 
