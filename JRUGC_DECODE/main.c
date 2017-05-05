@@ -19,6 +19,8 @@
 #define Details_Buffer_Size 5000000
 //Size of the buffer to store the message details temporarily
 #define Details_Bindec_Buffer_Size 10
+//Size of the buffer to store distance and time informations from detailed file
+#define Details_Data_Buffer_Size 31
 
 //Code for clicked button message
 #define BN_CLICKED_MESSAGE 9998
@@ -31,6 +33,7 @@ char* Hexdec_Buffer;
 char* Message_Buffer;
 char* Details_Buffer;
 char* Details_Bindec_Buffer;
+char* Details_Data_Buffer;
 bool control;
 bool shift;
 FILE* Detailed_File;
@@ -38,9 +41,10 @@ FILE* Compiled_File;
 int path_length;
 long long file_length;
 long long General_Position;
-long long Details_Position;
+int Details_Position;
 int treated=0;
-
+int Message_Position;
+int Reference_Message=-1;
 
 HWND MainWindow,MessageWindow,ProgressBarWindow,QuitButtonWindow,MessageHeaderWindow,FromWindow,ToWindow,TimeWindow,DistanceWindow,SpeedWindow;
 HFONT Main_Font;
@@ -172,6 +176,7 @@ void compile_file_read() {
     SendMessage(MessageWindow,LB_INITSTORAGE,(WPARAM)373333,(WPARAM)55999950);
     SendMessage(MessageWindow,WM_SETREDRAW,0,0);
 
+    fclose(Detailed_File);
     Detailed_File = fopen(strcat(Path_Buffer,"details.txt"),"w+");
     Path_Buffer[path_length]='\0';
 
@@ -365,11 +370,14 @@ void compile_file_read() {
     free(M_MODE_Buffer);
     General_Position=0;
     ShowWindow(ProgressBarWindow, 0);
-    fclose(Detailed_File);
+}
+
+unsigned long long get_item_data(int offset) {
+    fseek(Detailed_File,offset,SEEK_SET);
 }
 
 LRESULT CALLBACK WndProc(HWND hwndm, UINT msg, WPARAM wParam, LPARAM lParam) {
-    int tabs[13]={120,352,412,490,568,705,785,860,935,1000,1080,8000,610};
+    int tabs[11]={120,352,412,490,568,705,785,860,935,1000,1080};
     switch(msg)
     {
         HDC hdc ;
@@ -496,7 +504,7 @@ LRESULT CALLBACK WndProc(HWND hwndm, UINT msg, WPARAM wParam, LPARAM lParam) {
                             if (Message_Buffer[0]==69 && Message_Buffer[1]==77) SetTextColor(Item->hDC, RGB(255,0,0));
                         }
                     }
-                    TabbedTextOut(Item->hDC,Item->rcItem.left, Item->rcItem.top,(LPCSTR)Message_Buffer,len,13,(LPINT)&tabs,140);
+                    TabbedTextOut(Item->hDC,Item->rcItem.left, Item->rcItem.top,(LPCSTR)Message_Buffer,len,11,(LPINT)&tabs,140);
                 }
             return TRUE;
         case WM_PAINT:
@@ -600,6 +608,11 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     while (GetMessage(&Msg, NULL, 0, 0)>0)
     {
+        Message_Position = SendMessage(MessageWindow,LB_GETCURSEL,0,0);
+        Details_Position = SendMessage(MessageWindow,LB_GETITEMDATA,Message_Position,0);
+        if (Reference_Message>=0) {
+
+        }
         if (Msg.message==WM_KEYDOWN) {
             if (Msg.wParam==13) {
                 SendMessage(MessageWindow,LB_RESETCONTENT,0,0);
@@ -616,6 +629,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         }
         if (Msg.message==BN_CLICKED_MESSAGE) {
             if (Msg.wParam==(WPARAM)QuitButtonWindow) break;
+        }
+        if (Msg.message==WM_LBUTTONDBLCLK) {
+            if (Msg.hwnd==MessageWindow) Reference_Message = Message_Position;
         }
         TranslateMessage(&Msg);
         DispatchMessage(&Msg);
