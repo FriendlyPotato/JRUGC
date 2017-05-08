@@ -151,6 +151,10 @@ void bru_file() {
     Compiled_File=NULL;
 }
 
+void track_to_train_paquet(long nid_packet) {
+    printf("%ld\n",nid_packet);
+}
+
 void compile_file_read() {
     MSG Escape_Message;
     SendMessage(ProgressBarWindow,PBM_SETPOS,0,0);
@@ -367,29 +371,37 @@ void compile_file_read() {
         //Ecriture des données supplémentaires aux messages
 
         switch(id) {
-            case 199:
-            fprintf(Message_File,"%ld;%ld\n",bindec(4),bindec(2));
-            break;
-            case 200:
-            fprintf(Message_File,"%ld;%ld;%ld\n",bindec(3),bindec(8),bindec(2));
-            break;
-            case 198:
-            fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld\n",bindec(10),bindec(15),bindec(2),bindec(10),bindec(10));
-            break;
             case 2:
-            fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld\n",bindec(7),bindec(15),bindec(12),bindec(3),bindec(13),bindec(10),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(3),bindec(13),bindec(10),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(12),bindec(12),bindec(12),bindec(8),bindec(7),bindec(8),bindec(8),bindec(2),bindec(1),bindec(10),bindec(14),bindec(16),bindec(16),bindec(16),bindec(16));
+                fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld\n",bindec(7),bindec(15),bindec(12),bindec(3),bindec(13),bindec(10),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(3),bindec(13),bindec(10),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(12),bindec(12),bindec(12),bindec(8),bindec(7),bindec(8),bindec(8),bindec(2),bindec(1),bindec(10),bindec(14),bindec(16),bindec(16),bindec(16),bindec(16));
             break;
             case 3:
-            fprintf(Message_File,"%ld\n",bindec(1));
-            break;
-            case 11:
-            fprintf(Message_File,"%ld\n",bindec(8));
+                fprintf(Message_File,"%ld\n",bindec(1));
             break;
             case 5:
-            fprintf(Message_File,"%ld\n",bindec(8));
+                fprintf(Message_File,"%ld\n",bindec(8));
+            break;
+            case 6:
+                fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld\n",bindec(1),bindec(7),bindec(1),bindec(3),bindec(3),bindec(2),bindec(8),bindec(10),bindec(14),bindec(1));
+                while (1) {
+                    long nid_packet = bindec(8);
+                    if (nid_packet == 255) break;
+                    track_to_train_paquet(nid_packet);
+                }
+            break;
+            case 11:
+                fprintf(Message_File,"%ld\n",bindec(8));
+            break;
+            case 198:
+                fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld\n",bindec(10),bindec(15),bindec(2),bindec(10),bindec(10));
+            break;
+            case 199:
+                fprintf(Message_File,"%ld;%ld\n",bindec(4),bindec(2));
+            break;
+            case 200:
+                fprintf(Message_File,"%ld;%ld;%ld\n",bindec(3),bindec(8),bindec(2));
             break;
             default:
-            fprintf(Message_File,"\n");
+                fprintf(Message_File,"\n");
         }
 
         //Fin d'écriture des données supplémentaires aux messages
