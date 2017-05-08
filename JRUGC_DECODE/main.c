@@ -11,6 +11,8 @@
 
 //Size of the buffer to read the entire file
 #define Master_Bluffer_Size 115000000
+//Size of the buffer to store every message parameters
+#define Message_Bluffer_Size 100000000
 //Size of the buffer to store the path name
 #define Path_Buffer_Size 500
 //Size of the buffer to store the message
@@ -31,6 +33,7 @@
 
 char* Path_Buffer;
 char* Master_Bluffer;
+char* Message_Bluffer;
 char* Hexdec_Buffer;
 char* Message_Buffer;
 char* Details_Buffer;
@@ -39,7 +42,6 @@ char* Details_Data_Buffer;
 bool control;
 bool shift;
 FILE* Detailed_File;
-FILE* Message_File;
 FILE* Compiled_File;
 int path_length;
 long long file_length;
@@ -152,152 +154,152 @@ void bru_file() {
 }
 
 void track_to_train_paquet(long nid_packet) {
-    fprintf(Message_File,"[Paquet %03ld : ",nid_packet);
+    Message_Position += sprintf(&Message_Bluffer[Message_Position],"[Paquet %03ld : ",nid_packet);
     int i,j;
     long switcher,switcher_bis;
     long iterations,iterations_bis;
     switch(nid_packet) {
         case 0:
-            fprintf(Message_File,"%ld",bindec(6));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld",bindec(6));
         break;
         case 2:
-            fprintf(Message_File,"%ld;%ld;%ld",bindec(2),bindec(13),bindec(7));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld",bindec(2),bindec(13),bindec(7));
         break;
         case 3:
-            fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),iterations = bindec(5));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),iterations = bindec(5));
             for (i=0;i<iterations;i++) {
-                fprintf(Message_File,";%ld",bindec(10));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",bindec(10));
             }
-            fprintf(Message_File,";%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld",bindec(7),bindec(7),bindec(7),bindec(7),bindec(7),bindec(15),bindec(1),bindec(1),bindec(7),bindec(7),bindec(15),bindec(8),bindec(15),bindec(2),bindec(8),bindec(1),bindec(15),bindec(1));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld",bindec(7),bindec(7),bindec(7),bindec(7),bindec(7),bindec(15),bindec(1),bindec(1),bindec(7),bindec(7),bindec(15),bindec(8),bindec(15),bindec(2),bindec(8),bindec(1),bindec(15),bindec(1));
         break;
         case 5:
-            fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),switcher = bindec(1));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),switcher = bindec(1));
             if (switcher==1) {
-                fprintf(Message_File,";%ld",bindec(10));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",bindec(10));
             }
-            fprintf(Message_File,";%ld;%ld;%ld;%ld;%ld",bindec(14),bindec(1),bindec(2),bindec(6),iterations = bindec(5));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld;%ld;%ld;%ld",bindec(14),bindec(1),bindec(2),bindec(6),iterations = bindec(5));
             for (i=0;i<iterations;i++) {
-                fprintf(Message_File,";%ld;%ld",bindec(15),switcher=bindec(1));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(15),switcher=bindec(1));
                 if (switcher==1) {
-                    fprintf(Message_File,";%ld",bindec(10));
+                    Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",bindec(10));
                 }
-                fprintf(Message_File,"%ld;%ld;%ld;%ld",bindec(14),bindec(1),bindec(2),bindec(6));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld",bindec(14),bindec(1),bindec(2),bindec(6));
             }
         break;
         case 6:
-            fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),switcher = bindec(1),bindec(6),bindec(10));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),switcher = bindec(1),bindec(6),bindec(10));
             if (switcher==1) {
-                fprintf(Message_File,";%ld",bindec(8));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",bindec(8));
             }
         break;
         case 12:
-            fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(7),bindec(7),bindec(10),iterations = bindec(5));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(7),bindec(7),bindec(10),iterations = bindec(5));
             for (i=0;i<iterations;i++) {
-                fprintf(Message_File,";%ld;%ld",bindec(15),switcher=bindec(1));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(15),switcher=bindec(1));
                 if (switcher==1) {
-                    fprintf(Message_File,";%ld;%ld",bindec(10),bindec(15));
+                    Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(10),bindec(15));
                 }
             }
-            fprintf(Message_File,";%ld;%ld",bindec(15),switcher=bindec(1));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(15),switcher=bindec(1));
             if (switcher==1) {
-                fprintf(Message_File,";%ld;%ld",bindec(10),bindec(15));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(10),bindec(15));
             }
-            fprintf(Message_File,";%ld",switcher=bindec(1));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",switcher=bindec(1));
             if (switcher==1) {
-                fprintf(Message_File,";%ld;%ld",bindec(10),bindec(15));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(10),bindec(15));
             }
-            fprintf(Message_File,";%ld",switcher=bindec(1));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",switcher=bindec(1));
             if (switcher==1) {
-                fprintf(Message_File,";%ld;%ld",bindec(15),bindec(7));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(15),bindec(7));
             }
-            fprintf(Message_File,";%ld",switcher=bindec(1));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",switcher=bindec(1));
             if (switcher==1) {
-                fprintf(Message_File,";%ld;%ld;%ld;%ld",bindec(15),bindec(10),bindec(15),bindec(7));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld;%ld;%ld",bindec(15),bindec(10),bindec(15),bindec(7));
             }
         break;
         case 13:
-            fprintf(Message_File,"%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),switcher = bindec(1));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),switcher = bindec(1));
             if (switcher==1) {
-                fprintf(Message_File,";%ld",bindec(10));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",bindec(10));
             }
-            fprintf(Message_File,";%ld;%ld",bindec(14),switcher=bindec(1));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(14),switcher=bindec(1));
             if (switcher==1) {
-                fprintf(Message_File,";%ld",bindec(10));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",bindec(10));
             }
-            fprintf(Message_File,";%ld;%ld;%ld",bindec(14),bindec(15),iterations = bindec(5));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld;%ld",bindec(14),bindec(15),iterations = bindec(5));
             for (i=0;i<iterations;i++) {
-                fprintf(Message_File,";%ld",switcher=bindec(1));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",switcher=bindec(1));
                 if (switcher==1) {
-                    fprintf(Message_File,";%ld",bindec(10));
+                    Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",bindec(10));
                 }
-                fprintf(Message_File,";%ld;%ld",bindec(14),bindec(15));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(14),bindec(15));
             }
         break;
         case 15:
-            fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(7),bindec(10),iterations = bindec(5));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(7),bindec(10),iterations = bindec(5));
             for (i=0;i<iterations;i++) {
-                fprintf(Message_File,";%ld;%ld",bindec(15),switcher=bindec(1));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(15),switcher=bindec(1));
                 if (switcher==1) {
-                    fprintf(Message_File,";%ld;%ld",bindec(10),bindec(15));
+                    Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(10),bindec(15));
                 }
             }
-            fprintf(Message_File,";%ld;%ld",bindec(15),switcher=bindec(1));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(15),switcher=bindec(1));
             if (switcher==1) {
-                fprintf(Message_File,";%ld;%ld",bindec(10),bindec(15));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(10),bindec(15));
             }
-            fprintf(Message_File,";%ld",switcher=bindec(1));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",switcher=bindec(1));
             if (switcher==1) {
-                fprintf(Message_File,";%ld;%ld",bindec(10),bindec(15));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(10),bindec(15));
             }
-            fprintf(Message_File,";%ld",switcher=bindec(1));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",switcher=bindec(1));
             if (switcher==1) {
-                fprintf(Message_File,";%ld;%ld",bindec(15),bindec(7));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(15),bindec(7));
             }
-            fprintf(Message_File,";%ld",switcher=bindec(1));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",switcher=bindec(1));
             if (switcher==1) {
-                fprintf(Message_File,";%ld;%ld;%ld;%ld",bindec(15),bindec(10),bindec(15),bindec(7));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld;%ld;%ld",bindec(15),bindec(10),bindec(15),bindec(7));
             }
         break;
         case 16:
-            fprintf(Message_File,"%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15));
         break;
         case 21:
-            fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),bindec(1),bindec(8),iterations = bindec(5));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),bindec(1),bindec(8),iterations = bindec(5));
             for (i=0;i<iterations;i++) {
-                fprintf(Message_File,";%ld;%ld;%ld",bindec(15),bindec(1),bindec(8));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld;%ld",bindec(15),bindec(1),bindec(8));
             }
         break;
         case 27:
-            fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),bindec(7),bindec(1),iterations = bindec(5));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),bindec(7),bindec(1),iterations = bindec(5));
             for (i=0;i<iterations;i++) {
-                fprintf(Message_File,";%ld;%ld",bindec(4),bindec(7));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(4),bindec(7));
             }
-            fprintf(Message_File,";%ld",iterations=bindec(5));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",iterations=bindec(5));
             for (i=0;i<iterations;i++) {
-                fprintf(Message_File,";%ld;%ld;%ld;%ld",bindec(15),bindec(7),bindec(1),iterations_bis = bindec(5));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld;%ld;%ld",bindec(15),bindec(7),bindec(1),iterations_bis = bindec(5));
                 for (j=0;i<iterations_bis;i++) {
-                    fprintf(Message_File,";%ld;%ld",bindec(4),bindec(7));
+                    Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(4),bindec(7));
                 }
             }
         break;
         case 39:
-            fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),bindec(8));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),bindec(8));
         break;
         case 40:
-            fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),bindec(10));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),bindec(10));
         break;
         case 41:
-            fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),switcher = bindec(3));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),switcher = bindec(3));
             if (switcher==1) {
-                fprintf(Message_File,";%ld",bindec(8));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",bindec(8));
             }
-            fprintf(Message_File,";%ld;%ld",bindec(15),iterations = bindec(5));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(15),iterations = bindec(5));
             for (i=0;i<iterations;i++) {
-                fprintf(Message_File,";%ld",switcher = bindec(3));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",switcher = bindec(3));
                 if (switcher==1) {
-                    fprintf(Message_File,";%ld",bindec(8));
+                    Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",bindec(8));
                 }
-                fprintf(Message_File,";%ld",bindec(15));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",bindec(15));
             }
         break;
     }
@@ -331,10 +333,6 @@ void compile_file_read() {
     SendMessage(MessageWindow,WM_SETREDRAW,0,0);
 
     Detailed_File = fopen(strcat(Path_Buffer,"details.txt"),"w+");
-    Path_Buffer[path_length]='\0';
-
-    fclose(Message_File);
-    Message_File = fopen(strcat(Path_Buffer,"message.txt"),"w+");
     Path_Buffer[path_length]='\0';
 
     while (General_Position<file_length) {
@@ -514,43 +512,40 @@ void compile_file_read() {
         }
         sprintf(List_Buffer,"%s\t%02d/%02d/%02d  %02d:%02d:%02d:%03d    %.1f\t%d\t%d\t%d m\t%s/%s\t%d/%d\t%d km/h\t%s\t%s\t%s\t%s",Id_Name_Buffer,current_timestamp.tm_mday,current_timestamp.tm_mon+1,current_timestamp.tm_year-100,current_timestamp.tm_hour,current_timestamp.tm_min,current_timestamp.tm_sec,tts,q_scale,nid_c,nid_bg,d_lrbg,Q_DIR_Buffer,Q_DLRBG_Buffer,l_doubtunder,l_doubtover,v_train,Driver_Id_Buffer,Hexdec_Buffer,M_LEVEL_Buffer,M_MODE_Buffer);
         index = SendMessage(MessageWindow,LB_ADDSTRING,(WPARAM)0, (LPARAM)List_Buffer);
-        SendMessage(MessageWindow,LB_SETITEMDATA,index,0);
+        SendMessage(MessageWindow,LB_SETITEMDATA,index,Message_Position);
 
         //Ecriture des données supplémentaires aux messages
 
         switch(id) {
             case 2:
-                fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld\n",bindec(7),bindec(15),bindec(12),bindec(3),bindec(13),bindec(10),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(3),bindec(13),bindec(10),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(12),bindec(12),bindec(12),bindec(8),bindec(7),bindec(8),bindec(8),bindec(2),bindec(1),bindec(10),bindec(14),bindec(16),bindec(16),bindec(16),bindec(16));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld",bindec(7),bindec(15),bindec(12),bindec(3),bindec(13),bindec(10),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(3),bindec(13),bindec(10),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(12),bindec(12),bindec(12),bindec(8),bindec(7),bindec(8),bindec(8),bindec(2),bindec(1),bindec(10),bindec(14),bindec(16),bindec(16),bindec(16),bindec(16));
             break;
             case 3:
-                fprintf(Message_File,"%ld\n",bindec(1));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld",bindec(1));
             break;
             case 5:
-                fprintf(Message_File,"%ld\n",bindec(8));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld",bindec(8));
             break;
             case 6:
-                fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld",bindec(1),bindec(7),bindec(1),bindec(3),bindec(3),bindec(2),bindec(8),bindec(10),bindec(14),bindec(1));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld",bindec(1),bindec(7),bindec(1),bindec(3),bindec(3),bindec(2),bindec(8),bindec(10),bindec(14),bindec(1));
                 while (1) {
                     long nid_packet = bindec(8);
                     if (nid_packet == 255) break;
                     track_to_train_paquet(nid_packet);
                 }
-                fprintf(Message_File,"\n");
             break;
             case 11:
-                fprintf(Message_File,"%ld\n",bindec(8));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld",bindec(8));
             break;
             case 198:
-                fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld\n",bindec(10),bindec(15),bindec(2),bindec(10),bindec(10));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld;%ld",bindec(10),bindec(15),bindec(2),bindec(10),bindec(10));
             break;
             case 199:
-                fprintf(Message_File,"%ld;%ld\n",bindec(4),bindec(2));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld",bindec(4),bindec(2));
             break;
             case 200:
-                fprintf(Message_File,"%ld;%ld;%ld\n",bindec(3),bindec(8),bindec(2));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld",bindec(3),bindec(8),bindec(2));
             break;
-            default:
-                fprintf(Message_File,"\n");
         }
 
         //Fin d'écriture des données supplémentaires aux messages
@@ -574,7 +569,9 @@ void compile_file_read() {
     fclose(Detailed_File);
 
     General_Position=0;
+    Message_Position=0;
     ShowWindow(ProgressBarWindow, 0);
+    printf("%s\n",Message_Bluffer);
 }
 
 unsigned long long Get_Reference_Time(long long offset) {
@@ -787,6 +784,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     char* SpeedWindow_Buffer = malloc(Window_Buffer_Size*sizeof(char));
 
     Master_Bluffer = malloc(Master_Bluffer_Size*sizeof(char));
+    Message_Bluffer = malloc(Message_Bluffer_Size*sizeof(char));
     Details_Buffer = malloc(Details_Buffer_Size*sizeof(char));
     Path_Buffer = malloc(Path_Buffer_Size*sizeof(char));
     Hexdec_Buffer = malloc(32*sizeof(char));
@@ -931,6 +929,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     }
 
     free(Master_Bluffer);
+    free(Message_Bluffer);
     free(Details_Buffer);
     free(Message_Buffer);
     free(Path_Buffer);
