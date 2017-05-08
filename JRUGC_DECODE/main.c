@@ -152,7 +152,71 @@ void bru_file() {
 }
 
 void track_to_train_paquet(long nid_packet) {
-    printf("%ld\n",nid_packet);
+    fprintf(Message_File,"[Paquet %03ld : ",nid_packet);
+    int i;
+    long switcher;
+    long iterations;
+    switch(nid_packet) {
+        case 0:
+            fprintf(Message_File,"%ld",bindec(6));
+        break;
+        case 2:
+            fprintf(Message_File,"%ld;%ld;%ld",bindec(2),bindec(13),bindec(7));
+        break;
+        case 3:
+            fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),iterations = bindec(5));
+            for (i=0;i<iterations;i++) {
+                fprintf(Message_File,";%ld",bindec(10));
+            }
+            fprintf(Message_File,";%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld",bindec(7),bindec(7),bindec(7),bindec(7),bindec(7),bindec(15),bindec(1),bindec(1),bindec(7),bindec(7),bindec(15),bindec(8),bindec(15),bindec(2),bindec(8),bindec(1),bindec(15),bindec(1));
+        break;
+        case 5:
+            fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),switcher = bindec(1));
+            if (switcher==1) {
+                fprintf(Message_File,";%ld",bindec(10));
+            }
+            fprintf(Message_File,";%ld;%ld;%ld;%ld;%ld",bindec(14),bindec(1),bindec(2),bindec(6),iterations = bindec(5));
+            for (i=0;i<iterations;i++) {
+                fprintf(Message_File,";%ld;%ld",bindec(15),switcher=bindec(1));
+                if (switcher==1) {
+                    fprintf(Message_File,";%ld",bindec(10));
+                }
+                fprintf(Message_File,"%ld;%ld;%ld;%ld",bindec(14),bindec(1),bindec(2),bindec(6));
+            }
+        break;
+        case 6:
+            fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),switcher = bindec(1),bindec(6),bindec(10));
+            if (switcher==1) {
+                fprintf(Message_File,";%ld",bindec(8));
+            }
+        break;
+        case 12:
+            fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(7),bindec(7),bindec(10),iterations = bindec(5));
+            for (i=0;i<iterations;i++) {
+                fprintf(Message_File,";%ld;%ld",bindec(15),switcher=bindec(1));
+                if (switcher==1) {
+                    fprintf(Message_File,";%ld;%ld",bindec(10),bindec(15));
+                }
+            }
+            fprintf(Message_File,";%ld;%ld",bindec(15),switcher=bindec(1));
+            if (switcher==1) {
+                fprintf(Message_File,";%ld;%ld",bindec(10),bindec(15));
+            }
+            fprintf(Message_File,";%ld",switcher=bindec(1));
+            if (switcher==1) {
+                fprintf(Message_File,";%ld;%ld",bindec(10),bindec(15));
+            }
+            fprintf(Message_File,";%ld",switcher=bindec(1));
+            if (switcher==1) {
+                fprintf(Message_File,";%ld;%ld",bindec(15),bindec(7));
+            }
+            fprintf(Message_File,";%ld",switcher=bindec(1));
+            if (switcher==1) {
+                fprintf(Message_File,";%ld;%ld;%ld;%ld",bindec(15),bindec(10),bindec(15),bindec(7));
+            }
+        break;
+    }
+    fprintf(Message_File,"\n");
 }
 
 void compile_file_read() {
@@ -381,7 +445,7 @@ void compile_file_read() {
                 fprintf(Message_File,"%ld\n",bindec(8));
             break;
             case 6:
-                fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld\n",bindec(1),bindec(7),bindec(1),bindec(3),bindec(3),bindec(2),bindec(8),bindec(10),bindec(14),bindec(1));
+                fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld",bindec(1),bindec(7),bindec(1),bindec(3),bindec(3),bindec(2),bindec(8),bindec(10),bindec(14),bindec(1));
                 while (1) {
                     long nid_packet = bindec(8);
                     if (nid_packet == 255) break;
