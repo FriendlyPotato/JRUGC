@@ -39,22 +39,21 @@ char* Details_Data_Buffer;
 bool control;
 bool shift;
 FILE* Detailed_File;
+FILE* Message_File;
 FILE* Compiled_File;
 int path_length;
 long long file_length;
 long long General_Position;
 long long Details_Position;
 int treated=0;
-int Message_Position;
+long long Message_Position=0;
 int Reference_Message=-1;
 
 HWND MainWindow,MessageWindow,ProgressBarWindow,QuitButtonWindow,MessageHeaderWindow,FromWindow,ToWindow,TimeWindow,DistanceWindow,SpeedWindow,SetButtonWindow,GoToButtonWindow,ClearButtonWindow;
 HFONT Main_Font;
 HBRUSH Main_Brush,Gray_Brush,Orange_Edit_Brush,Green_Edit_Brush,Purple_Edit_Brush,Background_brush;
 
-
 const char g_szClassName[] = "myWindowClass";
-
 
 void appendNumber(int value){
     long long i;
@@ -165,7 +164,7 @@ void compile_file_read() {
     char* M_LEVEL_Buffer = malloc(10*sizeof(char));
     char* M_MODE_Buffer = malloc(17*sizeof(char));
     double q_scale;
-    unsigned long long delta_time=0,delta_distance=0,time_increment=0;
+    unsigned long long delta_time = 0,delta_distance = 0,time_increment = 0;
     unsigned long long Detailed_Position = 0;
     struct tm reference_timestamp = {0};
     struct tm current_timestamp = {0};
@@ -180,6 +179,10 @@ void compile_file_read() {
     SendMessage(MessageWindow,WM_SETREDRAW,0,0);
 
     Detailed_File = fopen(strcat(Path_Buffer,"details.txt"),"w+");
+    Path_Buffer[path_length]='\0';
+
+    fclose(Message_File);
+    Message_File = fopen(strcat(Path_Buffer,"message.txt"),"w+");
     Path_Buffer[path_length]='\0';
 
     while (General_Position<file_length) {
@@ -359,7 +362,38 @@ void compile_file_read() {
         }
         sprintf(List_Buffer,"%s\t%02d/%02d/%02d  %02d:%02d:%02d:%03d    %.1f\t%d\t%d\t%d m\t%s/%s\t%d/%d\t%d km/h\t%s\t%s\t%s\t%s",Id_Name_Buffer,current_timestamp.tm_mday,current_timestamp.tm_mon+1,current_timestamp.tm_year-100,current_timestamp.tm_hour,current_timestamp.tm_min,current_timestamp.tm_sec,tts,q_scale,nid_c,nid_bg,d_lrbg,Q_DIR_Buffer,Q_DLRBG_Buffer,l_doubtunder,l_doubtover,v_train,Driver_Id_Buffer,Hexdec_Buffer,M_LEVEL_Buffer,M_MODE_Buffer);
         index = SendMessage(MessageWindow,LB_ADDSTRING,(WPARAM)0, (LPARAM)List_Buffer);
-        SendMessage(MessageWindow,LB_SETITEMDATA,index,Detailed_Position);
+        SendMessage(MessageWindow,LB_SETITEMDATA,index,0);
+
+        //Ecriture des données supplémentaires aux messages
+
+        switch(id) {
+            case 199:
+            fprintf(Message_File,"%ld;%ld\n",bindec(4),bindec(2));
+            break;
+            case 200:
+            fprintf(Message_File,"%ld;%ld;%ld\n",bindec(3),bindec(8),bindec(2));
+            break;
+            case 198:
+            fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld\n",bindec(10),bindec(15),bindec(2),bindec(10),bindec(10));
+            break;
+            case 2:
+            fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld\n",bindec(7),bindec(15),bindec(12),bindec(3),bindec(13),bindec(10),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(3),bindec(13),bindec(10),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(10),bindec(13),bindec(12),bindec(12),bindec(12),bindec(8),bindec(7),bindec(8),bindec(8),bindec(2),bindec(1),bindec(10),bindec(14),bindec(16),bindec(16),bindec(16),bindec(16));
+            break;
+            case 3:
+            fprintf(Message_File,"%ld\n",bindec(1));
+            break;
+            case 11:
+            fprintf(Message_File,"%ld\n",bindec(8));
+            break;
+            case 5:
+            fprintf(Message_File,"%ld\n",bindec(8));
+            break;
+            default:
+            fprintf(Message_File,"\n");
+        }
+
+        //Fin d'écriture des données supplémentaires aux messages
+
         SendMessage(ProgressBarWindow,PBM_SETPOS,(int)(100*General_Position/file_length),0);
         UpdateWindow(ProgressBarWindow);
         General_Position+=length-treated;
@@ -583,6 +617,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     int Delta_Minute;
     int Delta_Second;
 
+
+
     Main_Font = CreateFont(15,6,0,0,600,FALSE,FALSE,FALSE,ANSI_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY, DEFAULT_PITCH,TEXT("Arial"));
 
     char* DistanceWindow_Buffer = malloc(Window_Buffer_Size*sizeof(char));
@@ -655,7 +691,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     while (GetMessage(&Current_Message, NULL, 0, 0)>0)
     {
         Message_Position = SendMessage(MessageWindow,LB_GETCURSEL,0,0);
-        Details_Position = SendMessage(MessageWindow,LB_GETITEMDATA,Message_Position,0);
+        Details_Position = 60*(Message_Position+1);
 
         if (Current_Message.message == SEL_CHANGE_MESSAGE) {
             if (Reference_Message>=0) {
