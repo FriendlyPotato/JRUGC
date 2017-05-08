@@ -215,8 +215,59 @@ void track_to_train_paquet(long nid_packet) {
                 fprintf(Message_File,";%ld;%ld;%ld;%ld",bindec(15),bindec(10),bindec(15),bindec(7));
             }
         break;
+        case 13:
+            fprintf(Message_File,"%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),switcher = bindec(1));
+            if (switcher==1) {
+                fprintf(Message_File,";%ld",bindec(10));
+            }
+            fprintf(Message_File,";%ld;%ld",bindec(14),switcher=bindec(1));
+            if (switcher==1) {
+                fprintf(Message_File,";%ld",bindec(10));
+            }
+            fprintf(Message_File,";%ld;%ld;%ld",bindec(14),bindec(15),iterations = bindec(5));
+            for (i=0;i<iterations;i++) {
+                fprintf(Message_File,";%ld",switcher=bindec(1));
+                if (switcher==1) {
+                    fprintf(Message_File,";%ld",bindec(10));
+                }
+                fprintf(Message_File,";%ld;%ld",bindec(14),bindec(15));
+            }
+        break;
+        case 15:
+            fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(7),bindec(10),iterations = bindec(5));
+            for (i=0;i<iterations;i++) {
+                fprintf(Message_File,";%ld;%ld",bindec(15),switcher=bindec(1));
+                if (switcher==1) {
+                    fprintf(Message_File,";%ld;%ld",bindec(10),bindec(15));
+                }
+            }
+            fprintf(Message_File,";%ld;%ld",bindec(15),switcher=bindec(1));
+            if (switcher==1) {
+                fprintf(Message_File,";%ld;%ld",bindec(10),bindec(15));
+            }
+            fprintf(Message_File,";%ld",switcher=bindec(1));
+            if (switcher==1) {
+                fprintf(Message_File,";%ld;%ld",bindec(10),bindec(15));
+            }
+            fprintf(Message_File,";%ld",switcher=bindec(1));
+            if (switcher==1) {
+                fprintf(Message_File,";%ld;%ld",bindec(15),bindec(7));
+            }
+            fprintf(Message_File,";%ld",switcher=bindec(1));
+            if (switcher==1) {
+                fprintf(Message_File,";%ld;%ld;%ld;%ld",bindec(15),bindec(10),bindec(15),bindec(7));
+            }
+        break;
+        case 16:
+            fprintf(Message_File,"%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15));
+        break;
+        case 21:
+            fprintf(Message_File,"%ld;%ld;%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),bindec(1),bindec(8),iterations = bindec(5));
+            for (i=0;i<iterations;i++) {
+                fprintf(Message_File,";%ld;%ld;%ld",bindec(15),bindec(1),bindec(8));
+            }
+        break;
     }
-    fprintf(Message_File,"\n");
 }
 
 void compile_file_read() {
@@ -451,6 +502,7 @@ void compile_file_read() {
                     if (nid_packet == 255) break;
                     track_to_train_paquet(nid_packet);
                 }
+                fprintf(Message_File,"\n");
             break;
             case 11:
                 fprintf(Message_File,"%ld\n",bindec(8));
