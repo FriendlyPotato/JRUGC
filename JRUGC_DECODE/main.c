@@ -156,7 +156,8 @@ void bru_file() {
 void track_to_train_paquet(long nid_packet) {
     Message_Position += sprintf(&Message_Bluffer[Message_Position],"[Paquet %03ld : ",nid_packet);
     int i,j;
-    long switcher,switcher_bis,memory;
+    long switcher,switcher_bis;
+    long memory,memory_bis;
     long iterations,iterations_bis;
     switch(nid_packet) {
         case 0:
@@ -398,7 +399,7 @@ void track_to_train_paquet(long nid_packet) {
             Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld",bindec(2),bindec(13),bindec(8));
         break;
         case 67:
-            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),bindec(15),iterations = bindec(5));
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),bindec(15),iterations = bindec(5));
             for (i=0;i<iterations;i++) {
                 Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(15),bindec(15));
             }
@@ -438,11 +439,41 @@ void track_to_train_paquet(long nid_packet) {
                     else Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",switcher = bindec(8));
                 }
             } else {
-                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",switcher = bindec(15));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",bindec(15));
             }
         break;
         case 71:
             Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),bindec(15),bindec(1));
+        break;
+        case 72:
+            memory_bis = 84;
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld",bindec(2),memory = bindec(13),bindec(2),bindec(2),bindec(1),bindec(15),bindec(4),switcher = bindec(3));
+            if (switcher == 1) {
+                memory_bis += 8;
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",bindec(8));
+            }
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld",bindec(15),bindec(10),bindec(4),switcher = bindec(3));
+            if (switcher == 1) {
+                memory_bis += 8;
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",bindec(8));
+            }
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",switcher = bindec(2));
+            if (switcher == 1) {
+                memory_bis += 2;
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(1),switcher_bis = bindec(1));
+                if (switcher_bis == 1) {
+                    memory_bis += 32;
+                    Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld",bindec(8),bindec(10),bindec(14));
+                }
+            }
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",switcher = bindec(8));
+            while (memory_bis<memory-8) {
+                memory_bis += 8;
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",bindec(8));
+            }
+        break;
+        case 76:
+
         break;
     }
 }
