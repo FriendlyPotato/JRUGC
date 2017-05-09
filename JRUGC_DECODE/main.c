@@ -378,6 +378,72 @@ void track_to_train_paquet(long nid_packet) {
                 Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(15),bindec(1));
             }
         break;
+        case 63:
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld",bindec(2),bindec(13),iterations = bindec(5));
+            for (i=0;i<iterations;i++) {
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",switcher = bindec(1));
+                if (switcher==1) {
+                    Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",switcher = bindec(10));
+                }
+            }
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",iterations = bindec(14));
+        break;
+        case 64:
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld",bindec(2),bindec(13));
+        break;
+        case 65:
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(8),bindec(15),bindec(15),bindec(1),bindec(7));
+        break;
+        case 66:
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld",bindec(2),bindec(13),bindec(8));
+        break;
+        case 67:
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),bindec(15),iterations = bindec(5));
+            for (i=0;i<iterations;i++) {
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(15),bindec(15));
+            }
+        break;
+        case 68:
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),switcher = bindec(1));
+            if (switcher == 0) {
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld;%ld;%ld",bindec(15),bindec(15),bindec(4),iterations = bindec(5));
+                for (i=0;i<iterations;i++) {
+                    Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld;%ld",bindec(15),bindec(15),bindec(4));
+                }
+            } else {
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",bindec(15));
+            }
+        break;
+        case 69:
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),switcher = bindec(1));
+            if (switcher == 0) {
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld;%ld;%ld;%ld",bindec(15),bindec(15),bindec(4),bindec(2),iterations = bindec(5));
+                for (i=0;i<iterations;i++) {
+                    Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld;%ld;%ld",bindec(15),bindec(15),bindec(4),bindec(2));
+                }
+            } else {
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",bindec(15));
+            }
+        break;
+        case 70:
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),switcher = bindec(1));
+            if (switcher == 0) {
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(15),memory = bindec(2));
+                if (memory==1) Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",switcher = bindec(7));
+                else Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",switcher = bindec(8));
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",iterations = bindec(5));
+                for (i=0;i<iterations;i++) {
+                    Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld;%ld",bindec(15),memory = bindec(2));
+                    if (memory==1) Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",switcher = bindec(7));
+                    else Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",switcher = bindec(8));
+                }
+            } else {
+                Message_Position += sprintf(&Message_Bluffer[Message_Position],";%ld",switcher = bindec(15));
+            }
+        break;
+        case 71:
+            Message_Position += sprintf(&Message_Bluffer[Message_Position],"%ld;%ld;%ld;%ld;%ld;%ld",bindec(2),bindec(13),bindec(2),bindec(15),bindec(15),bindec(1));
+        break;
     }
 }
 
