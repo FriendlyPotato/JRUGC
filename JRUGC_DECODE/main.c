@@ -46,9 +46,11 @@ long long file_length;
 long long General_Position;
 int treated=0;
 long long Message_Position=0;
+int Details_Position;
 int Reference_Message=-1;
-unsigned long long Time_Storage[400000];
-unsigned long long Distance_Storage[400000];
+unsigned long long Time_Storage[Mean_Message_Number_Count];
+unsigned long long Distance_Storage[Mean_Message_Number_Count];
+int Message_Details_Storage[Mean_Details_Number];
 
 HWND MainWindow,MessageWindow,ProgressBarWindow,QuitButtonWindow,MessageHeaderWindow,FromWindow,ToWindow,TimeWindow,DistanceWindow,SpeedWindow,SetButtonWindow,GoToButtonWindow,ClearButtonWindow;
 HFONT Main_Font;
@@ -102,11 +104,6 @@ long result=0;
 General_Position+=length;
 treated+=length;
 return result;
-}
-
-void details_bindec(int length) {
-    sprintf(Details_Bindec_Buffer,"%ld;",bindec(length));
-    strcat(Details_Buffer,Details_Bindec_Buffer);
 }
 
 void bru_file_decode(char* src) {
@@ -166,11 +163,12 @@ void compile_file_read() {
     char* M_MODE_Buffer = malloc(17*sizeof(char));
     double q_scale;
     unsigned long long delta_time = 0,delta_distance = 0,time_increment = 0;
-    unsigned long long Detailed_Position = 0;
     struct tm reference_timestamp = {0};
     struct tm current_timestamp = {0};
     reference_timestamp.tm_isdst=-1;
     current_timestamp.tm_isdst=-1;
+
+    Details_Position = 0;
 
     Compiled_File = fopen(strcat(Path_Buffer,"compile.txt"),"r");
     Path_Buffer[path_length]='\0';
@@ -254,7 +252,6 @@ void compile_file_read() {
             Distance_Storage[index+1]=delta_distance;
             Time_Storage[index+1]=delta_time;
         }
-        Detailed_Position +=60;
         int q_scale_read = bindec(2);
         if (q_scale_read==1) q_scale = 1.0;
         if (q_scale_read==0) q_scale = 0.1;
@@ -363,11 +360,15 @@ void compile_file_read() {
         }
         sprintf(List_Buffer,"%s\t%02d/%02d/%02d  %02d:%02d:%02d:%03d    %.1f\t%d\t%d\t%d m\t%s/%s\t%d/%d\t%d km/h\t%s\t%s\t%s\t%s",Id_Name_Buffer,current_timestamp.tm_mday,current_timestamp.tm_mon+1,current_timestamp.tm_year-100,current_timestamp.tm_hour,current_timestamp.tm_min,current_timestamp.tm_sec,tts,q_scale,nid_c,nid_bg,d_lrbg,Q_DIR_Buffer,Q_DLRBG_Buffer,l_doubtunder,l_doubtover,v_train,Driver_Id_Buffer,Hexdec_Buffer,M_LEVEL_Buffer,M_MODE_Buffer);
         index = SendMessage(MessageWindow,LB_ADDSTRING,(WPARAM)0, (LPARAM)List_Buffer);
-        SendMessage(MessageWindow,LB_SETITEMDATA,index,Message_Position);
+        SendMessage(MessageWindow,LB_SETITEMDATA,index,Details_Position);
 
         //Ecriture des données supplémentaires aux messages
 
+        switch(id) {
+            case 2:
 
+            break;
+        }
 
         //Fin d'écriture des données supplémentaires aux messages
 
@@ -607,7 +608,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     wc.hbrBackground = (HBRUSH)(COLOR_WINDOW+1);
     wc.lpszMenuName  = NULL;
     wc.lpszClassName = g_szClassName;
-    wc.hIconSm       = LoadIcon(hInstance,"MAINICON");
+    wc.hIconSm       = LoadIcon(hInstance,"MAINICWinMainON");
     RegisterClassEx(&wc);
 
     MainWindow = CreateWindowEx(WS_EX_CLIENTEDGE,g_szClassName,"JRUGC - Outil interne THIF de décodage des JRU - V 3.0.0-P",WS_OVERLAPPEDWINDOW|WS_MAXIMIZE,0, 0, 1700, 1000,NULL, NULL, hInstance, NULL);
