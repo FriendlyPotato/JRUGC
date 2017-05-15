@@ -21,6 +21,10 @@
 #define Details_Data_Buffer_Size 31
 //Size of the buffer to store window texts
 #define Window_Buffer_Size 31
+//Mean number of messages for storage
+#define Mean_Message_Number_Count 400000
+//Mean number of details for storage
+#define Mean_Details_Number 100000000
 
 //Code for clicked button message
 #define BTN_CLICKED_MESSAGE 9998
@@ -43,6 +47,8 @@ long long General_Position;
 int treated=0;
 long long Message_Position=0;
 int Reference_Message=-1;
+unsigned long long Time_Storage[400000];
+unsigned long long Distance_Storage[400000];
 
 HWND MainWindow,MessageWindow,ProgressBarWindow,QuitButtonWindow,MessageHeaderWindow,FromWindow,ToWindow,TimeWindow,DistanceWindow,SpeedWindow,SetButtonWindow,GoToButtonWindow,ClearButtonWindow;
 HFONT Main_Font;
@@ -240,7 +246,14 @@ void compile_file_read() {
         reference_timestamp = current_timestamp;
         reference_tts=tts;
         delta_distance+=(time_increment*v_train);
-        //if (index==-1 || current_timestamp.tm_year ==172) {fprintf(Detailed_File,"000000000000000000000000000000000000000000000000000000000000"); delta_time=0;} else fprintf(Detailed_File,"%030I64u%030I64u",delta_time,delta_distance);
+        if (index==-1 || current_timestamp.tm_year ==172) {
+            Distance_Storage[index+1]=0;
+            Time_Storage[index+1]=0;
+            delta_time=0;
+        } else {
+            Distance_Storage[index+1]=delta_distance;
+            Time_Storage[index+1]=delta_time;
+        }
         Detailed_Position +=60;
         int q_scale_read = bindec(2);
         if (q_scale_read==1) q_scale = 1.0;
@@ -374,14 +387,6 @@ void compile_file_read() {
 
     General_Position=0;
     ShowWindow(ProgressBarWindow, 0);
-}
-
-unsigned long long Get_Reference_Time() {
-    return 1;
-}
-
-unsigned long long Get_Reference_Distance() {
-    return 1;
 }
 
 LRESULT CALLBACK WndProc(HWND hwndm, UINT msg, WPARAM wParam, LPARAM lParam) {
@@ -571,11 +576,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     unsigned long long Delta_Time;
     unsigned long long Delta_Distance;
     unsigned long long Average_Speed;
+    int Message_Count=0;
     int Delta_Hour;
     int Delta_Minute;
     int Delta_Second;
-
-
 
     Main_Font = CreateFont(15,6,0,0,600,FALSE,FALSE,FALSE,ANSI_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY, DEFAULT_PITCH,TEXT("Arial"));
 
@@ -648,8 +652,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     while (GetMessage(&Current_Message, NULL, 0, 0)>0)
     {
         Message_Position = SendMessage(MessageWindow,LB_GETCURSEL,0,0);
-        Current_Time = 1;
-        Current_Distance = 1;
+        Current_Time = Time_Storage[Message_Position];
+        Current_Distance = Distance_Storage[Message_Position];
 
         if (Current_Message.message == SEL_CHANGE_MESSAGE) {
             if (Reference_Message>=0) {
@@ -668,9 +672,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
                 if (Delta_Time>0) Average_Speed = (3600*Delta_Distance/Delta_Time); else Average_Speed=0;
 
-                while (Delta_Time>3600000) {Delta_Time-=3600000; Delta_Hour++;}
-                while (Delta_Time>60000) {Delta_Time-=60000; Delta_Minute++;}
-                while (Delta_Time>1000) {Delta_Time-=1000; Delta_Second++;}
+                while (Delta_Time>=3600000) {Delta_Time-=3600000; Delta_Hour++;}
+                while (Delta_Time>=60000) {Delta_Time-=60000; Delta_Minute++;}
+                while (Delta_Time>=1000) {Delta_Time-=1000; Delta_Second++;}
 
                 sprintf(TimeWindow_Buffer,"%02d h %02d m %02d s %03I64u ms",Delta_Hour,Delta_Minute,Delta_Second,Delta_Time);
                 sprintf(DistanceWindow_Buffer,"%I64u km %03I64u m",Delta_Distance/3600000,(Delta_Distance/3600)%1000);
@@ -687,6 +691,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 SendMessage(MessageWindow,LB_RESETCONTENT,0,0);
                 bru_file();
                 compile_file_read();
+                Message_Count=SendMessage(MessageWindow,LB_GETCOUNT,0,0);
             }
             if (Current_Message.wParam==VK_SHIFT) shift = true;
             if (Current_Message.wParam==VK_CONTROL) control = true;
@@ -701,9 +706,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         }
         if (((Current_Message.message==WM_LBUTTONDBLCLK && Current_Message.hwnd==MessageWindow) || (Current_Message.message==WM_KEYDOWN && Current_Message.wParam=='S')) || (Current_Message.message==BTN_CLICKED_MESSAGE && Current_Message.wParam==(WPARAM)SetButtonWindow)) {
             Reference_Message = Message_Position;
-            Reference_Time = Get_Reference_Time();
-            Reference_Distance = Get_Reference_Distance();
-            SetWindowText(TimeWindow,"00 h 00 m 00 s 00 ms");
+            Reference_Time = Time_Storage[Message_Position];
+            Reference_Distance = Distance_Storage[Message_Position];
+            SetWindowText(TimeWindow,"00 h 00 m 00 s 000 ms");
             SetWindowText(DistanceWindow,"0 km 000 m");
             SetWindowText(SpeedWindow,"0 km/h");
             RedrawWindow(MessageWindow,NULL,NULL,RDW_INVALIDATE);
