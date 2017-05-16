@@ -316,6 +316,20 @@ void track_to_train_paquet(int nid_packet) {
                 bndtls(15);
             }
         break;
+        case 42:
+            bndtls(2);bndtls(13);bndtls(1);bndtls(10);bndtls(14);bndtls(16);bndtls(16);bndtls(16);bndtls(16);bndtls(1);
+        break;
+        case 44:
+            bndtls(2);memory = bndtls_r(13);switcher = bndtls_r(9);
+            if (switcher==102) {
+                bndtls(8);
+                memory_bis=40;
+            } else memory_bis=32;
+            bndtls(memory-memory_bis);
+        break;
+        case 45:
+            bndtls(2);bndtls(13);bndtls(24);
+        break;
     }
 }
 
