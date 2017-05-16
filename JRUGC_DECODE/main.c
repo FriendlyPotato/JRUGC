@@ -211,7 +211,43 @@ void track_to_train_paquet(int nid_packet) {
             }
         break;
         case 12:
-
+            bndtls(2);bndtls(13);bndtls(2);bndtls(7);bndtls(7);bndtls(10);iterations = bndtls_r(5);
+            for (i=0;i<iterations;i++) {
+                bndtls(15);switcher = bndtls_r(1);
+                if (switcher==1) {
+                    bndtls(10);bndtls(15);
+                }
+            }
+            bndtls(15);switcher = bndtls_r(1);
+            if (switcher==1) {
+                bndtls(10);bndtls(15);
+            }
+            switcher = bndtls_r(1);
+            if (switcher==1) {
+                bndtls(10);bndtls(15);
+            }
+            switcher = bndtls_r(1);
+            if (switcher==1) {
+                bndtls(15);bndtls(7);
+            }
+            switcher = bndtls_r(1);
+            if (switcher==1) {
+                bndtls(15);bndtls(10);bndtls(15);bndtls(7);
+            }
+        break;
+        case 13:
+            bndtls(2);bndtls(13);bndtls(2);switcher = bndtls_r(1);
+            if (switcher==1) {
+                bndtls(10);
+            }
+            bndtls(14);bndtls(15);iterations = bndtls_r(5);
+            for (i=0;i<iterations;i++) {
+                switcher = bndtls_r(1);
+                if (switcher==1) {
+                    bndtls(10);
+                }
+                bndtls(14);bndtls(15);
+            }
         break;
     }
 }
