@@ -106,6 +106,19 @@ treated+=length;
 return result;
 }
 
+void bindec_details(int length) {
+int i;
+int result=0;
+    for (i=0;i<length;i++) {
+        if ((Master_Bluffer[i+General_Position]!=48)) result+=power(length-i-1);
+    }
+    General_Position+=length;
+    treated+=length;
+    Message_Details_Storage[Details_Position]=result;
+    Details_Position++;
+}
+
+
 void bru_file_decode(char* src) {
     FILE* P;
     int c,i=0;
