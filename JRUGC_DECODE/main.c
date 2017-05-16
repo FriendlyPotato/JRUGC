@@ -106,7 +106,7 @@ treated+=length;
 return result;
 }
 
-void bindec_details(int length) {
+void bndtls(int length) {
 int i;
 int result=0;
     for (i=0;i<length;i++) {
@@ -118,6 +118,18 @@ int result=0;
     Details_Position++;
 }
 
+int bndtls_r(int length) {
+int i;
+int result=0;
+    for (i=0;i<length;i++) {
+        if ((Master_Bluffer[i+General_Position]!=48)) result+=power(length-i-1);
+    }
+    General_Position+=length;
+    treated+=length;
+    Message_Details_Storage[Details_Position]=result;
+    Details_Position++;
+    return result;
+}
 
 void bru_file_decode(char* src) {
     FILE* P;
@@ -160,6 +172,48 @@ void bru_file() {
     }
     fclose(Compiled_File);
     Compiled_File=NULL;
+}
+
+void track_to_train_paquet(int nid_packet) {
+    int i,j,iterations,iterations_bis,switcher,switcher_bis,memory,memory_bis;
+    switch(nid_packet) {
+        case 0:
+            bndtls(6);
+        break;
+        case 2:
+            bndtls(2);bndtls(13);bndtls(7);
+        break;
+        case 3:
+            bndtls(2);bndtls(13);bndtls(2);bndtls(15);iterations = bndtls_r(5);
+            for (i=0;i<iterations;i++) {
+                bndtls(10);
+            }
+            bndtls(7);bndtls(7);bndtls(7);bndtls(7);bndtls(7);bndtls(15);bndtls(1);bndtls(1);bndtls(7);bndtls(7);bndtls(15);bndtls(8);bndtls(15);bndtls(2);bndtls(8);bndtls(1);bndtls(15);bndtls(1);
+        break;
+        case 5:
+            bndtls(2);bndtls(13);bndtls(2);bndtls(15);switcher = bndtls_r(1);
+            if (switcher==1) {
+                bndtls(10);
+            }
+            bndtls(14);bndtls(1);bndtls(2);bndtls(6);iterations = bndtls_r(5);
+            for (i=0;i<iterations;i++) {
+                bndtls(15);switcher = bndtls_r(1);
+                if (switcher==1) {
+                    bndtls(10);
+                }
+                bndtls(14);bndtls(1);bndtls(2);bndtls(6);
+            }
+        break;
+        case 6:
+            bndtls(2);bndtls(13);switcher = bndtls_r(1);bndtls(6);bndtls(10);
+            if (switcher==1) {
+                bndtls(8);
+            }
+        break;
+        case 12:
+
+        break;
+    }
 }
 
 void compile_file_read() {
@@ -379,7 +433,45 @@ void compile_file_read() {
 
         switch(id) {
             case 2:
+                bndtls(7);bndtls(15);bndtls(12);bndtls(3);bndtls(13);bndtls(10);bndtls(10);bndtls(13);bndtls(10);bndtls(13);bndtls(10);bndtls(13);
+                bndtls(10);bndtls(13);bndtls(10);bndtls(13);bndtls(10);bndtls(13);bndtls(3);bndtls(13);bndtls(10);bndtls(10);bndtls(13);bndtls(10);
+                bndtls(13);bndtls(10);bndtls(13);bndtls(10);bndtls(13);bndtls(10);bndtls(13);bndtls(10);bndtls(13);bndtls(12);bndtls(12);bndtls(12);
+                bndtls(8);bndtls(7);bndtls(8);bndtls(8);bndtls(2);bndtls(1);bndtls(10);bndtls(14);bndtls(16);bndtls(16);bndtls(16);bndtls(16);
+            break;
+            case 3:
+                bndtls(1);
+            break;
+            case 5:
+                bndtls(8);
+            break;
+            case 6:
+                bndtls(1);bndtls(7);bndtls(1);bndtls(3);bndtls(3);bndtls(2);bndtls(8);bndtls(10);bndtls(14);bndtls(1);
+                while((Message_Details_Storage[Details_Position]=-bindec(8))!=-255) {
+                    track_to_train_paquet(Message_Details_Storage[Details_Position]);
+                    Details_Position++;
+                }
+                Details_Position++;
+            break;
+            case 9:
 
+            break;
+            case 10:
+
+            break;
+            case 11:
+                bndtls(8);
+            break;
+            case 15:
+
+            break;
+            case 198:
+                bndtls(10);bndtls(15);bndtls(2);bndtls(10);bndtls(10);
+            break;
+            case 199:
+                bndtls(4);bndtls(2);
+            break;
+            case 200:
+                bndtls(3);bndtls(8);bndtls(2);
             break;
         }
 
@@ -668,6 +760,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
         Message_Position = SendMessage(MessageWindow,LB_GETCURSEL,0,0);
         Current_Time = Time_Storage[Message_Position];
         Current_Distance = Distance_Storage[Message_Position];
+        Details_Position = SendMessage(MessageWindow,LB_GETITEMDATA,Message_Position,0);
 
         if (Current_Message.message == SEL_CHANGE_MESSAGE) {
             if (Reference_Message>=0) {
