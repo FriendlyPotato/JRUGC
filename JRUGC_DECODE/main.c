@@ -601,6 +601,19 @@ void track_to_train_paquet(int nid_packet) {
     }
 }
 
+void track_to_train_message(int nid_message) {
+    int longueur_message = bndtls(10);
+    int nid_packet;
+    int initial_length=treated;
+    switch(nid_message) {
+        case 2:
+        case 33:
+            bndtls(16);bndtls(16);bndtls(1);bndtls(10);bndtls(14);bndtls(2);bndtls(15);
+
+        break;
+    }
+}
+
 void compile_file_read() {
     MSG Escape_Message;
     SendMessage(ProgressBarWindow,PBM_SETPOS,0,0);
@@ -832,13 +845,14 @@ void compile_file_read() {
             case 6:
                 bndtls(1);bndtls(7);bndtls(1);bndtls(3);bndtls(3);bndtls(2);bndtls(8);bndtls(10);bndtls(14);bndtls(1);
                 while((Message_Details_Storage[Details_Position]=-bindec(8))!=-255) {
-                    track_to_train_paquet(Message_Details_Storage[Details_Position]);
                     Details_Position++;
+                    track_to_train_paquet(Message_Details_Storage[Details_Position-1]);
                 }
                 Details_Position++;
             break;
             case 9:
-
+                Message_Details_Storage[Details_Position]=-bindec(8); Details_Position++;
+                track_to_train_message(Message_Details_Storage[Details_Position-1]);
             break;
             case 10:
 
