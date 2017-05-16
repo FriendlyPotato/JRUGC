@@ -428,9 +428,67 @@ void track_to_train_paquet(int nid_packet) {
             }
         break;
         case 69:
-
+            bndtls(2);bndtls(13);bndtls(2);switcher = bndtls_r(1);
+            if (switcher==0) {
+                bndtls(15);bndtls(15);bndtls(4);bndtls(2);iterations = bndtls_r(5);
+                for (i=0;i<iterations;i++) {
+                    bndtls(15);bndtls(15);bndtls(4);bndtls(2);
+                }
+            } else {
+                bndtls(15);
+            }
         break;
-
+        case 70:
+            bndtls(2);bndtls(13);bndtls(2);switcher = bndtls_r(1);
+            if (switcher==0) {
+                bndtls(15);switcher_bis = bndtls_r(2);
+                if (switcher_bis==1) {
+                    bndtls(7);
+                } else {
+                    bndtls(8);
+                }
+                iterations = bndtls_r(5);
+                for (i=0;i<iterations;i++) {
+                    bndtls(15);switcher_bis = bndtls_r(2);
+                    if (switcher_bis==1) {
+                        bndtls(7);
+                    } else {
+                        bndtls(8);
+                    }
+                }
+            } else {
+                bndtls(15);
+            }
+        break;
+        case 71:
+            bndtls(2);bndtls(13);bndtls(2);bndtls(15);bndtls(15);bndtls(1);
+        break;
+        case 72:
+            memory_bis = 92;
+            bndtls(2);memory = bndtls_r(13);bndtls(2);bndtls(2);bndtls(1);bndtls(15);bndtls(4);switcher = bndtls_r(3);
+            if (switcher==1) {
+                memory_bis+=8;
+                bndtls(8);
+            }
+            bndtls(15);bndtls(10);bndtls(4);switcher = bndtls_r(3);
+            if (switcher==1) {
+                memory_bis+=8;
+                bndtls(8);
+            }
+            switcher = bndtls_r(2);
+            if (switcher==1) {
+                memory_bis+=2;
+                bndtls(1);switcher_bis = bndtls_r(1);
+                if (switcher_bis==1) {
+                    memory_bis+=32;
+                    bndtls(8);bndtls(10);bndtls(14);
+                }
+            }
+            while(memory_bis<memory) {
+                memory_bis+=8;
+                bndtls(8);
+            }
+        break;
     }
 }
 
