@@ -249,6 +249,73 @@ void track_to_train_paquet(int nid_packet) {
                 bndtls(14);bndtls(15);
             }
         break;
+        case 15:
+            bndtls(2);bndtls(13);bndtls(2);bndtls(7);bndtls(10);iterations = bndtls_r(5);
+            for (i=0;i<iterations;i++) {
+                bndtls(15);switcher = bndtls_r(1);
+                if (switcher==1) {
+                    bndtls(10);bndtls(15);
+                }
+            }
+            bndtls(15);switcher = bndtls_r(1);
+            if (switcher==1) {
+                bndtls(10);bndtls(15);
+            }
+            switcher = bndtls_r(1);
+            if (switcher==1) {
+                bndtls(10);bndtls(15);
+            }
+            switcher = bndtls_r(1);
+            if (switcher==1) {
+                bndtls(15);bndtls(7);
+            }
+            switcher = bndtls_r(1);
+            if (switcher==1) {
+                bndtls(15);bndtls(10);bndtls(15);bndtls(7);
+            }
+        break;
+        case 16:
+            bndtls(2);bndtls(13);bndtls(2);bndtls(15);
+        break;
+        case 21:
+            bndtls(2);bndtls(13);bndtls(2);bndtls(15);bndtls(1);bndtls(8);iterations = bndtls_r(5);
+            for (i=0;i<iterations;i++) {
+                bndtls(15);bndtls(1);bndtls(8);
+            }
+        break;
+        case 27:
+            bndtls(2);bndtls(13);bndtls(2);bndtls(15);bndtls(7);bndtls(1);iterations = bndtls_r(5);
+            for (i=0;i<iterations;i++) {
+                bndtls(4);bndtls(7);
+            }
+            iterations = bndtls_r(5);
+            for (i=0;i<iterations;i++) {
+                bndtls(15);bndtls(7);bndtls(1);iterations_bis = bndtls_r(5);
+                for (j=0;j<iterations_bis;j++) {
+                    bndtls(4);bndtls(7);
+                }
+            }
+        break;
+        case 39:
+            bndtls(2);bndtls(13);bndtls(2);bndtls(15);bndtls(8);
+        break;
+        case 40:
+            bndtls(2);bndtls(13);bndtls(2);bndtls(15);bndtls(10);
+        break;
+        case 41:
+            bndtls(2);bndtls(13);bndtls(2);bndtls(15);switcher = bndtls_r(3);
+            if (switcher==1) {
+                bndtls(8);
+            }
+            bndtls(15);iterations = bndtls_r(5);
+            for (i=0;i<iterations;i++) {
+                switcher = bndtls_r(3);
+                if (switcher==1) {
+                    bndtls(8);
+                }
+                bndtls(15);
+            }
+        break;
     }
 }
 
