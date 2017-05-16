@@ -330,6 +330,107 @@ void track_to_train_paquet(int nid_packet) {
         case 45:
             bndtls(2);bndtls(13);bndtls(24);
         break;
+        case 46:
+            bndtls(2);bndtls(13);switcher = bndtls_r(3);
+            if (switcher==1) {
+                bndtls(8);
+            }
+            iterations = bndtls_r(5);
+            for (i=0;i<iterations;i++) {
+                switcher = bndtls_r(3);
+                if (switcher==1) {
+                    bndtls(8);
+                }
+            }
+        break;
+        case 49:
+            bndtls(2);bndtls(13);iterations = bndtls_r(5);
+            for (i=0;i<iterations;i++) {
+                switcher = bndtls_r(1);
+                if (switcher==1) {
+                    bndtls(10);
+                }
+                bndtls(14);
+            }
+        break;
+        case 51:
+            bndtls(2);bndtls(13);bndtls(2);switcher = bndtls_r(1);
+            if (switcher==0) {
+                bndtls(15);bndtls(15);bndtls(15);bndtls(1);iterations = bndtls_r(5);
+                for (i=0;i<iterations;i++) {
+                    bndtls(7);bndtls(7);
+                }
+                iterations = bndtls_r(5);
+                for (i=0;i<iterations;i++) {
+                    bndtls(15);bndtls(15);bndtls(1);iterations_bis = bndtls_r(5);
+                    for (j=0;j<iterations_bis;j++) {
+                        bndtls(7);bndtls(7);
+                    }
+                }
+            } else {
+                bndtls(15);
+            }
+        break;
+        case 52:
+            bndtls(2);bndtls(13);bndtls(2);switcher = bndtls_r(1);
+            if (switcher==0) {
+                bndtls(15);bndtls(1);bndtls(8);bndtls(1);bndtls(15);bndtls(15);iterations = bndtls_r(5);
+                for (i=0;i<iterations;i++) {
+                    bndtls(15);bndtls(1);bndtls(8);bndtls(1);bndtls(15);bndtls(15);
+                }
+            } else {
+                bndtls(15);
+            }
+        break;
+        case 57:
+            bndtls(2);bndtls(13);bndtls(8);bndtls(10);bndtls(8);
+        break;
+        case 58:
+            bndtls(2);bndtls(13);bndtls(2);bndtls(8);bndtls(15);bndtls(3);iterations = bndtls_r(5);
+            for (i=0;i<iterations;i++) {
+                bndtls(15);bndtls(1);
+            }
+        break;
+        case 63:
+            bndtls(2);bndtls(13);iterations = bndtls_r(5);
+            for (i=0;i<iterations;i++) {
+                switcher = bndtls_r(1);
+                if (switcher==1) {
+                    bndtls(10);
+                }
+                bndtls(14);
+            }
+        break;
+        case 64:
+            bndtls(2);bndtls(13);
+        break;
+        case 65:
+            bndtls(2);bndtls(13);bndtls(2);bndtls(8);bndtls(15);bndtls(15);bndtls(1);bndtls(7);
+        break;
+        case 66:
+            bndtls(2);bndtls(13);bndtls(8);
+        break;
+        case 67:
+            bndtls(2);bndtls(13);bndtls(2);bndtls(15);bndtls(15);iterations = bndtls_r(5);
+            for (i=0;i<iterations;i++) {
+                bndtls(15);bndtls(15);
+            }
+        break;
+        case 68:
+            bndtls(2);bndtls(13);bndtls(2);switcher = bndtls_r(1);
+            if (switcher==0) {
+                bndtls(15);bndtls(15);bndtls(4);iterations = bndtls_r(5);
+                for (i=0;i<iterations;i++) {
+                    bndtls(15);bndtls(15);bndtls(4);
+                }
+            } else {
+                bndtls(15);
+            }
+        break;
+        case 69:
+
+        break;
+
     }
 }
 
