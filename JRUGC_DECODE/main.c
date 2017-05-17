@@ -24,7 +24,7 @@
 //Mean number of messages for storage
 #define Mean_Message_Number_Count 400000
 //Mean number of details for storage
-#define Mean_Details_Number 100000000
+#define Mean_Details_Number 2000000
 
 //Code for clicked button message
 #define BTN_CLICKED_MESSAGE 9998
@@ -47,12 +47,13 @@ long long General_Position;
 int treated=0;
 long long Message_Position=0;
 int Details_Position;
+int End_Details_Position;
 int Reference_Message=-1;
 unsigned long long Time_Storage[Mean_Message_Number_Count];
 unsigned long long Distance_Storage[Mean_Message_Number_Count];
 int Message_Details_Storage[Mean_Details_Number];
 
-HWND MainWindow,MessageWindow,ProgressBarWindow,QuitButtonWindow,MessageHeaderWindow,FromWindow,ToWindow,TimeWindow,DistanceWindow,SpeedWindow,SetButtonWindow,GoToButtonWindow,ClearButtonWindow;
+HWND MainWindow,MessageWindow,ProgressBarWindow,QuitButtonWindow,MessageHeaderWindow,FromWindow,ToWindow,TimeWindow,DistanceWindow,SpeedWindow,SetButtonWindow,GoToButtonWindow,ClearButtonWindow,HeadersWindow,DetailsWindow;
 HFONT Main_Font;
 HBRUSH Main_Brush,Gray_Brush,Orange_Edit_Brush,Green_Edit_Brush,Purple_Edit_Brush,Background_brush;
 
@@ -985,7 +986,7 @@ void compile_file_read() {
         index = SendMessage(MessageWindow,LB_ADDSTRING,(WPARAM)0, (LPARAM)List_Buffer);
         SendMessage(MessageWindow,LB_SETITEMDATA,index,Details_Position);
 
-        //Ecriture des données supplémentaires aux messages
+        //Ecriture des donnÃ©es supplï¿½mentaires aux messages
 
         switch(id) {
             case 2:
@@ -1033,7 +1034,7 @@ void compile_file_read() {
             break;
         }
 
-        //Fin d'écriture des données supplémentaires aux messages
+        //Fin d'Ã©criture des donnÃ©es supplÃ©mentaires aux messages
 
         SendMessage(ProgressBarWindow,PBM_SETPOS,(int)(100*General_Position/file_length),0);
         UpdateWindow(ProgressBarWindow);
@@ -1225,6 +1226,7 @@ LRESULT CALLBACK WndProc(HWND hwndm, UINT msg, WPARAM wParam, LPARAM lParam) {
 }
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow){
+    int i;
     Gray_Brush = CreateSolidBrush(RGB(220,220,220));
     Main_Brush = CreateSolidBrush(RGB(30,139,200));
     Background_brush = CreateSolidBrush(RGB(30,139,200));
@@ -1244,6 +1246,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     int Delta_Hour;
     int Delta_Minute;
     int Delta_Second;
+
+    int Details_End_Point;
 
     Main_Font = CreateFont(15,6,0,0,600,FALSE,FALSE,FALSE,ANSI_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY, DEFAULT_PITCH,TEXT("Arial"));
 
@@ -1274,8 +1278,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     wc.hIconSm       = LoadIcon(hInstance,"MAINICWinMainON");
     RegisterClassEx(&wc);
 
-    MainWindow = CreateWindowEx(WS_EX_CLIENTEDGE,g_szClassName,"JRUGC - Outil interne THIF de décodage des JRU - V 3.0.0-P",WS_OVERLAPPEDWINDOW|WS_MAXIMIZE,0, 0, 1700, 1000,NULL, NULL, hInstance, NULL);
+    MainWindow = CreateWindowEx(WS_EX_CLIENTEDGE,g_szClassName,"JRUGC - Outil interne THIF de dÃ©codage des JRU - V 3.0.0-P",WS_OVERLAPPEDWINDOW|WS_MAXIMIZE,0, 0, 1700, 1000,NULL, NULL, hInstance, NULL);
     MessageWindow = CreateWindowEx(0,"LISTBOX" ,"Data",WS_CHILD |WS_VSCROLL |WS_BORDER|WS_THICKFRAME | LBS_USETABSTOPS | LBS_NOTIFY | LBS_HASSTRINGS | LBS_OWNERDRAWFIXED,15,70,1450,450,MainWindow,(HMENU) NULL,hInstance,NULL);
+    HeadersWindow = CreateWindowEx(0,"LISTBOX" ,"Sub_data",WS_CHILD |WS_HSCROLL |WS_VSCROLL |WS_BORDER|WS_THICKFRAME | LBS_USETABSTOPS  | LBS_NOTIFY ,15,580,300,370,MainWindow,(HMENU) NULL,hInstance,NULL);
+    DetailsWindow = CreateWindowEx(0,"LISTBOX" ,"Details",WS_CHILD |WS_HSCROLL |WS_VSCROLL |WS_BORDER|WS_THICKFRAME | LBS_USETABSTOPS  | LBS_NOTIFY | LBS_OWNERDRAWFIXED |LBS_HASSTRINGS |LBS_NOSEL,350,580,1116,370,MainWindow,(HMENU) NULL,hInstance,NULL);
     ProgressBarWindow = CreateWindowEx(0,PROGRESS_CLASS,NULL,WS_CHILD |WS_BORDER |PBS_SMOOTH,200,0,250,25,MainWindow,(HMENU) NULL,hInstance,NULL);
     QuitButtonWindow = CreateWindowEx((DWORD)0,"BUTTON","QUIT",WS_CHILD |WS_BORDER,1595,5,75,25,MainWindow,(HMENU) NULL,hInstance,NULL);
     MessageHeaderWindow = CreateWindowEx(0,"LISTBOX" ,"Data",WS_CHILD |WS_HSCROLL |WS_VSCROLL |WS_BORDER|WS_THICKFRAME | LBS_USETABSTOPS | LBS_OWNERDRAWFIXED | LBS_NOTIFY | LBS_HASSTRINGS,15,30,1450,15,MainWindow,(HMENU) NULL,hInstance,NULL);
@@ -1288,10 +1294,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     GoToButtonWindow = CreateWindowEx((DWORD)0,"BUTTON","GoTo",WS_CHILD |WS_BORDER,360,545,50,20,MainWindow,(HMENU) NULL,hInstance,NULL);
     ClearButtonWindow = CreateWindowEx((DWORD)0,"BUTTON","Clear",WS_CHILD |WS_BORDER,420,545,50,20,MainWindow,(HMENU) NULL,hInstance,NULL);
 
+
     SendMessage(MessageHeaderWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"Message\tDate        Time                  Scale(m)\tNID_C\tNID_LRBG\tD_LRBG\tD/D\tL+/L-\tV (km/h)\tDRIVER\tTRAIN\tLEVEL\tMODE");
 
     ShowWindow(MainWindow, 3);
     ShowWindow(MessageWindow, nCmdShow);
+    ShowWindow(HeadersWindow, nCmdShow);
+    ShowWindow(DetailsWindow, nCmdShow);
     ShowWindow(QuitButtonWindow, nCmdShow);
     ShowWindow(MessageHeaderWindow, nCmdShow);
     ShowWindow(FromWindow, nCmdShow);
@@ -1304,6 +1313,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     ShowWindow(ClearButtonWindow, nCmdShow);
 
     SendMessage(MessageWindow,WM_SETFONT,(WPARAM)Main_Font,(LPARAM)TRUE);
+    SendMessage(HeadersWindow,WM_SETFONT,(WPARAM)Main_Font,(LPARAM)TRUE);
+    SendMessage(DetailsWindow,WM_SETFONT,(WPARAM)Main_Font,(LPARAM)TRUE);
     SendMessage(MessageHeaderWindow,WM_SETFONT,(WPARAM)Main_Font,(LPARAM)TRUE);
     SendMessage(QuitButtonWindow,WM_SETFONT,(WPARAM)Main_Font,(LPARAM)TRUE);
     SendMessage(DistanceWindow,WM_SETFONT,(WPARAM)Main_Font,(LPARAM)TRUE);
@@ -1315,12 +1326,15 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     while (GetMessage(&Current_Message, NULL, 0, 0)>0)
     {
-        Message_Position = SendMessage(MessageWindow,LB_GETCURSEL,0,0);
-        Current_Time = Time_Storage[Message_Position];
-        Current_Distance = Distance_Storage[Message_Position];
-        Details_Position = SendMessage(MessageWindow,LB_GETITEMDATA,Message_Position,0);
 
         if (Current_Message.message == SEL_CHANGE_MESSAGE) {
+
+            Message_Position = SendMessage(MessageWindow,LB_GETCURSEL,0,0);
+            Current_Time = Time_Storage[Message_Position];
+            Current_Distance = Distance_Storage[Message_Position];
+            Details_Position = SendMessage(MessageWindow,LB_GETITEMDATA,Message_Position,0);
+            if (Message_Position==Message_Count) Details_End_Point = End_Details_Position; else Details_End_Point = SendMessage(MessageWindow,LB_GETITEMDATA,Message_Position+1,0);
+
             if (Reference_Message>=0) {
                 Delta_Hour = 0;
                 Delta_Minute = 0;
@@ -1357,6 +1371,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 bru_file();
                 compile_file_read();
                 Message_Count=SendMessage(MessageWindow,LB_GETCOUNT,0,0);
+                End_Details_Position=SendMessage(MessageWindow,LB_GETITEMDATA,Message_Count,0);
+                SetFocus(MessageWindow);
+                SendMessage(MessageWindow,LB_SETCURSEL,0,0);
+                PostMessage(MessageWindow,SEL_CHANGE_MESSAGE,0,0);
             }
             if (Current_Message.wParam==VK_SHIFT) shift = true;
             if (Current_Message.wParam==VK_CONTROL) control = true;
@@ -1411,4 +1429,3 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     return 0;
 }
-
