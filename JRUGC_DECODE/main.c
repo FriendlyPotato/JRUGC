@@ -1258,6 +1258,9 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     char* DistanceWindow_Buffer = malloc(Window_Buffer_Size*sizeof(char));
     char* TimeWindow_Buffer = malloc(Window_Buffer_Size*sizeof(char));
     char* SpeedWindow_Buffer = malloc(Window_Buffer_Size*sizeof(char));
+    char* Window_Buffer = malloc(Window_Buffer_Size*sizeof(char));
+
+    char* Window_
 
     Master_Bluffer = malloc(Master_Bluffer_Size*sizeof(char));
     Path_Buffer = malloc(Path_Buffer_Size*sizeof(char));
@@ -1377,6 +1380,25 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                 SetWindowText(DistanceWindow,DistanceWindow_Buffer);
                 SetWindowText(SpeedWindow,SpeedWindow_Buffer);
             }
+
+            if (Current_Message.hwnd==MessageWindow) {
+                SendMessage(HeadersWindow,LB_RESETCONTENT,0,0);
+
+                if (current_message_name[0]=='M') {
+                    if (strstr(current_message_name,"RBC")!=NULL) {
+                        SendMessage(HeadersWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"Message Header");
+                        for (i=0;i<Details_End_Point;i++) {
+                            if (Message_Details_Storage[i]<0) SendMessage(HeadersWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"Message Header");
+                        }
+                    } else {
+
+                    }
+                } else SendMessage(HeadersWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"Message Header");
+                SendMessage(HeadersWindow,LB_SETCURSEL,0,0);
+            }
+
+
+
         }
 
         if (Current_Message.message==WM_KEYDOWN) {
@@ -1437,6 +1459,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     free(DistanceWindow_Buffer);
     free(TimeWindow_Buffer);
     free(SpeedWindow_Buffer);
+    free(Window_Buffer);
 
     DeleteObject(Gray_Brush);
     DeleteObject(Main_Brush);
