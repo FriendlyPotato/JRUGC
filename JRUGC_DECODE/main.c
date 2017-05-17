@@ -484,6 +484,7 @@ void track_to_train_paquet(int nid_packet) {
                     bndtls(8);bndtls(10);bndtls(14);
                 }
             }
+            bndtls(8);
             while(memory_bis<memory) {
                 memory_bis+=8;
                 bndtls(8);
@@ -598,18 +599,71 @@ void track_to_train_paquet(int nid_packet) {
         case 254:
             bndtls(2);bndtls(13);
         break;
+        default:
+            system("pause");
+        break;
     }
 }
 
 void track_to_train_message(int nid_message) {
-    int longueur_message = bndtls(10);
-    int nid_packet;
-    int initial_length=treated;
+    int message_length = bndtls_r(10);
+    int initial_treated = treated;
     switch(nid_message) {
         case 2:
         case 33:
             bndtls(16);bndtls(16);bndtls(1);bndtls(10);bndtls(14);bndtls(2);bndtls(15);
-
+            while(treated-initial_treated<message_length) {
+                Message_Details_Storage[Details_Position]=-bindec(8);
+                Details_Position++;
+                track_to_train_paquet(-Message_Details_Storage[Details_Position-1]);
+            }
+        break;
+        case 3:
+        case 9:
+        case 24:
+        case 37:
+            bndtls(16);bndtls(16);bndtls(1);bndtls(10);bndtls(14);
+            while(treated-initial_treated<message_length) {
+                Message_Details_Storage[Details_Position]=-bindec(8);
+                Details_Position++;
+                track_to_train_paquet(-Message_Details_Storage[Details_Position-1]);
+            }
+        break;
+        case 6:
+        case 38:
+        case 39:
+        case 40:
+        case 41:
+        case 43:
+            bndtls(16);bndtls(16);bndtls(1);bndtls(10);bndtls(14);
+        break;
+        case 8:
+        case 27:
+            bndtls(16);bndtls(16);bndtls(1);bndtls(10);bndtls(14);bndtls(16);bndtls(16);
+        break;
+        case 15:
+            bndtls(16);bndtls(16);bndtls(1);bndtls(10);bndtls(14);bndtls(4);bndtls(2);bndtls(16);bndtls(2);bndtls(15);
+        break;
+        case 16:
+        case 18:
+            bndtls(16);bndtls(16);bndtls(1);bndtls(10);bndtls(14);bndtls(4);
+        break;
+        case 28:
+            bndtls(16);bndtls(16);bndtls(1);bndtls(10);bndtls(14);bndtls(16);bndtls(16);
+            while(treated-initial_treated<message_length) {
+                Message_Details_Storage[Details_Position]=-bindec(8);
+                Details_Position++;
+                track_to_train_paquet(-Message_Details_Storage[Details_Position-1]);
+            }
+        break;
+        case 32:
+            bndtls(16);bndtls(16);bndtls(1);bndtls(10);bndtls(14);bndtls(7);
+        break;
+        case 34:
+            bndtls(16);bndtls(16);bndtls(1);bndtls(10);bndtls(14);bndtls(2);bndtls(2);bndtls(15);bndtls(15);
+        break;
+        case 45:
+            bndtls(16);bndtls(16);bndtls(1);bndtls(10);bndtls(14);bndtls(1);
         break;
     }
 }
@@ -846,13 +900,13 @@ void compile_file_read() {
                 bndtls(1);bndtls(7);bndtls(1);bndtls(3);bndtls(3);bndtls(2);bndtls(8);bndtls(10);bndtls(14);bndtls(1);
                 while((Message_Details_Storage[Details_Position]=-bindec(8))!=-255) {
                     Details_Position++;
-                    track_to_train_paquet(Message_Details_Storage[Details_Position-1]);
+                    track_to_train_paquet(-Message_Details_Storage[Details_Position-1]);
                 }
                 Details_Position++;
             break;
             case 9:
-                Message_Details_Storage[Details_Position]=-bindec(8); Details_Position++;
-                track_to_train_message(Message_Details_Storage[Details_Position-1]);
+//                Message_Details_Storage[Details_Position]=-bindec(8); Details_Position++;
+//                track_to_train_message(-Message_Details_Storage[Details_Position-1]);
             break;
             case 10:
 
