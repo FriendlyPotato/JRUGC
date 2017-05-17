@@ -665,6 +665,58 @@ void track_to_train_message(int nid_message) {
     }
 }
 
+void train_to_track_message(int nid_message) {
+    int message_length = bndtls_r(10);
+    int initial_treated = treated;
+    switch(nid_message) {
+        case 129:
+        case 130:
+        case 136:
+        case 149:
+        case 150:
+        case 159:
+            bndtls(16);bndtls(16);bndtls(24);
+            while(treated-initial_treated<message_length) {
+                Message_Details_Storage[Details_Position]=-bindec(8);
+                Details_Position++;
+                train_to_track_paquet(-Message_Details_Storage[Details_Position-1]);
+            }
+        break;
+        case 132:
+            bndtls(16);bndtls(16);bndtls(24);bndtls(5);
+        break;
+        case 137:
+        case 138:
+            bndtls(16);bndtls(16);bndtls(24);bndtls(16);bndtls(16);
+            while(treated-initial_treated<message_length) {
+                Message_Details_Storage[Details_Position]=-bindec(8);
+                Details_Position++;
+                train_to_track_paquet(-Message_Details_Storage[Details_Position-1]);
+            }
+        break;
+        case 146:
+            bndtls(16);bndtls(16);bndtls(24);bndtls(16);bndtls(16);
+        break;
+        case 147:
+            bndtls(16);bndtls(16);bndtls(24);bndtls(4);bndtls(2);
+        break;
+        case 153:
+            bndtls(16);bndtls(16);bndtls(24);bndtls(10);bndtls(14);bndtls(1);
+        break;
+        case 154:
+        case 155:
+        case 156:
+            bndtls(16);bndtls(16);bndtls(24);
+        break;
+        case 157:
+            bndtls(16);bndtls(16);bndtls(24);bndtls(2);
+        break;
+        case 158:
+            bndtls(16);bndtls(16);bndtls(24);bndtls(8);
+        break;
+    }
+}
+
 void compile_file_read() {
     MSG Escape_Message;
     SendMessage(ProgressBarWindow,PBM_SETPOS,0,0);
@@ -906,7 +958,8 @@ void compile_file_read() {
                 track_to_train_message(-Message_Details_Storage[Details_Position-1]);
             break;
             case 10:
-
+                Message_Details_Storage[Details_Position]=-bindec(8); Details_Position++;
+                train_to_track_message(-Message_Details_Storage[Details_Position-1]);
             break;
             case 11:
                 bndtls(8);
