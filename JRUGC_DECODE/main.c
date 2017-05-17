@@ -1260,8 +1260,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     char* SpeedWindow_Buffer = malloc(Window_Buffer_Size*sizeof(char));
     char* Window_Buffer = malloc(Window_Buffer_Size*sizeof(char));
 
-    char* Window_
-
     Master_Bluffer = malloc(Master_Bluffer_Size*sizeof(char));
     Path_Buffer = malloc(Path_Buffer_Size*sizeof(char));
     Hexdec_Buffer = malloc(32*sizeof(char));
@@ -1366,6 +1364,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                     Delta_Distance = Reference_Distance-Current_Distance;
                 }
 
+                printf("%I64u - %I64u\n",Delta_Time,Delta_Distance);
+
                 if (Delta_Time>0) Average_Speed = (3600*Delta_Distance/Delta_Time); else Average_Speed=3600*current_message_speed;
 
                 while (Delta_Time>=3600000) {Delta_Time-=3600000; Delta_Hour++;}
@@ -1383,22 +1383,99 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
             if (Current_Message.hwnd==MessageWindow) {
                 SendMessage(HeadersWindow,LB_RESETCONTENT,0,0);
+                SendMessage(DetailsWindow,LB_RESETCONTENT,0,0);
 
                 if (current_message_name[0]=='M') {
                     if (strstr(current_message_name,"RBC")!=NULL) {
-                        SendMessage(HeadersWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"Message Header");
-                        for (i=0;i<Details_End_Point;i++) {
-                            if (Message_Details_Storage[i]<0) SendMessage(HeadersWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"Message Header");
+                        sprintf(Window_Buffer,"Message #%03d",-Message_Details_Storage[Details_Position]);
+                        SendMessage(HeadersWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)Window_Buffer);
+                        for (i=Details_Position+1;i<Details_End_Point;i++) {
+                            if (Message_Details_Storage[i]<0) {
+                                sprintf(Window_Buffer,"Packet #%03d",-Message_Details_Storage[i]);
+                                SendMessage(HeadersWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)Window_Buffer);
+                            }
+                        }
+                        if (strstr(current_message_name,"FROM")!=NULL) {
+                            switch(-Message_Details_Storage[Details_Position]) {
+                                case 2:
+                                    SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"SR AUTHORISATION");
+                                break;
+                                case 3:
+                                    SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"MOVEMENT AUTHORITY");
+                                break;
+                                case 6:
+                                    SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"RECOGNITION OF EXIT FROM TRIP MODE");
+                                break;
+                                case 8:
+                                    SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"ACKNOWLEDGEMENT OF TRAIN DATA");
+                                break;
+                                case 9:
+                                    SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"REQUEST TO SHORTEN MA");
+                                break;
+                                case 15:
+                                    SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"CONDITIONAL EMERGENCY STOP");
+                                break;
+                                case 16:
+                                    SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"UNCONDITIONAL EMERGENCY STOP");
+                                break;
+                                case 18:
+                                    SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"REVOCATION OF EMERGENCY STOP");
+                                break;
+                                case 24:
+                                    SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"GENERAL MESSAGE");
+                                break;
+                                case 27:
+                                    SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"SH REFUSED");
+                                break;
+                                case 28:
+                                    SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"SH AUTHORISED");
+                                break;
+                                case 29:
+                                    SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"RBC/RIU SYSTEM VERSION");
+                                break;
+                                case 33:
+                                    SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"MA WITH SHIFTED LOCATION REFERENCE");
+                                break;
+                                case 34:
+                                    SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"TRACK AHEAD FREE REQUEST");
+                                break;
+                                case 37:
+                                    SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"INFILL MA");
+                                break;
+                                case 38:
+                                    SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"INITIATION OF A COMMUNICATION SESSION");
+                                break;
+                                case 39:
+                                    SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"ACKNOWLEDGEMENT OF TERMINATION OF A COMMUNICATION SESSION");
+                                break;
+                                case 40:
+                                    SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"TRAIN REJECTED");
+                                break;
+                                case 41:
+                                    SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"TRAIN ACCEPTED");
+                                break;
+                                case 43:
+                                    SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"SOM POSITION REPORT CONFIRMED BY RBC");
+                                break;
+                                case 45:
+                                    SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"ASSIGNEMENT OF COORDINATE SYSTEM");
+                                break;
+                            }
+                        } else {
+
                         }
                     } else {
-
+                        SendMessage(HeadersWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"Message Header");
+                        for (i=Details_Position;i<Details_End_Point;i++) {
+                            if (Message_Details_Storage[i]<0 && Message_Details_Storage[i]!=-255) {
+                                sprintf(Window_Buffer,"Packet #%03d",-Message_Details_Storage[i]);
+                                SendMessage(HeadersWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)Window_Buffer);
+                            }
+                        }
                     }
-                } else SendMessage(HeadersWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"Message Header");
+                } else if (current_message_name[0]!='G') SendMessage(HeadersWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"Message Header");
                 SendMessage(HeadersWindow,LB_SETCURSEL,0,0);
             }
-
-
-
         }
 
         if (Current_Message.message==WM_KEYDOWN) {
