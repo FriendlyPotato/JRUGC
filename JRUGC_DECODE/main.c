@@ -982,7 +982,7 @@ void compile_file_read() {
                 sprintf(M_MODE_Buffer,"Passive Shunting");
             break;
         }
-        sprintf(List_Buffer,"%s\t%02d/%02d/%02d  %02d:%02d:%02d:%03d    %.1f\t%d\t%d\t%d m\t%s/%s\t%d/%d\t%d km/h\t%s\t%s\t%s\t%s",Id_Name_Buffer,current_timestamp.tm_mday,current_timestamp.tm_mon+1,current_timestamp.tm_year-100,current_timestamp.tm_hour,current_timestamp.tm_min,current_timestamp.tm_sec,tts,q_scale,nid_c,nid_bg,d_lrbg,Q_DIR_Buffer,Q_DLRBG_Buffer,l_doubtunder,l_doubtover,v_train,Driver_Id_Buffer,Hexdec_Buffer,M_LEVEL_Buffer,M_MODE_Buffer);
+        sprintf(List_Buffer,"%s\t%02d/%02d/%02d  %02d:%02d:%02d:%03d    %.1f\t%d\t%d\t%d m\t%s/%s\t%d/%d\t%03d km/h\t%s\t%s\t%s\t%s",Id_Name_Buffer,current_timestamp.tm_mday,current_timestamp.tm_mon+1,current_timestamp.tm_year-100,current_timestamp.tm_hour,current_timestamp.tm_min,current_timestamp.tm_sec,tts,q_scale,nid_c,nid_bg,d_lrbg,Q_DIR_Buffer,Q_DLRBG_Buffer,l_doubtunder,l_doubtover,v_train,Driver_Id_Buffer,Hexdec_Buffer,M_LEVEL_Buffer,M_MODE_Buffer);
         index = SendMessage(MessageWindow,LB_ADDSTRING,(WPARAM)0, (LPARAM)List_Buffer);
         SendMessage(MessageWindow,LB_SETITEMDATA,index,Details_Position);
 
@@ -1249,6 +1249,10 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     int Details_End_Point;
 
+    char* current_message_name;
+    int current_message_speed;
+
+
     Main_Font = CreateFont(15,6,0,0,600,FALSE,FALSE,FALSE,ANSI_CHARSET,OUT_DEFAULT_PRECIS,CLIP_DEFAULT_PRECIS,DEFAULT_QUALITY, DEFAULT_PITCH,TEXT("Arial"));
 
     char* DistanceWindow_Buffer = malloc(Window_Buffer_Size*sizeof(char));
@@ -1326,7 +1330,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     while (GetMessage(&Current_Message, NULL, 0, 0)>0)
     {
-
         if (Current_Message.message == SEL_CHANGE_MESSAGE) {
 
             Message_Position = SendMessage(MessageWindow,LB_GETCURSEL,0,0);
@@ -1334,7 +1337,17 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             Current_Distance = Distance_Storage[Message_Position];
             Details_Position = SendMessage(MessageWindow,LB_GETITEMDATA,Message_Position,0);
             if (Message_Position==Message_Count) Details_End_Point = End_Details_Position; else Details_End_Point = SendMessage(MessageWindow,LB_GETITEMDATA,Message_Position+1,0);
+
             SendMessage(MessageWindow,LB_GETTEXT,(WPARAM)Message_Position,(LPARAM)Message_Buffer);
+
+            current_message_name = strtok(Message_Buffer,"\t");
+            strtok(NULL,"\t");
+            strtok(NULL,"\t");
+            strtok(NULL,"\t");
+            strtok(NULL,"\t");
+            strtok(NULL,"\t");
+            strtok(NULL,"\t");
+            current_message_speed = atoi(strtok(NULL,"\t"));
 
             if (Reference_Message>=0) {
                 Delta_Hour = 0;
@@ -1350,7 +1363,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                     Delta_Distance = Reference_Distance-Current_Distance;
                 }
 
-                if (Delta_Time>0) Average_Speed = (3600*Delta_Distance/Delta_Time); else Average_Speed=0;
+                if (Delta_Time>0) Average_Speed = (3600*Delta_Distance/Delta_Time); else Average_Speed=3600*current_message_speed;
 
                 while (Delta_Time>=3600000) {Delta_Time-=3600000; Delta_Hour++;}
                 while (Delta_Time>=60000) {Delta_Time-=60000; Delta_Minute++;}
@@ -1394,7 +1407,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             Reference_Distance = Distance_Storage[Message_Position];
             SetWindowText(TimeWindow,"00 h 00 m 00 s 000 ms");
             SetWindowText(DistanceWindow,"0 km 000 m");
-            SetWindowText(SpeedWindow,"0 km/h");
+            sprintf(SpeedWindow_Buffer,"%d km/h",current_message_speed);
+            SetWindowText(SpeedWindow,SpeedWindow_Buffer);
             RedrawWindow(MessageWindow,NULL,NULL,RDW_INVALIDATE);
             continue;
         }
