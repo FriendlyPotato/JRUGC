@@ -599,9 +599,6 @@ void track_to_train_paquet(int nid_packet) {
         case 254:
             bndtls(2);bndtls(13);
         break;
-        default:
-            system("pause");
-        break;
     }
 }
 
@@ -905,8 +902,8 @@ void compile_file_read() {
                 Details_Position++;
             break;
             case 9:
-//                Message_Details_Storage[Details_Position]=-bindec(8); Details_Position++;
-//                track_to_train_message(-Message_Details_Storage[Details_Position-1]);
+                Message_Details_Storage[Details_Position]=-bindec(8); Details_Position++;
+                track_to_train_message(-Message_Details_Storage[Details_Position-1]);
             break;
             case 10:
 
