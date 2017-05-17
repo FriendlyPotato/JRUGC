@@ -603,7 +603,7 @@ void track_to_train_paquet(int nid_packet) {
 }
 
 void train_to_track_paquet(int nid_packet) {
-    int i,j,iterations,iterations_bis,switcher,switcher_bis,memory,memory_bis;
+    int i,iterations,switcher,memory;
     switch(nid_packet) {
         case 0:
             bndtls(13);bndtls(2);bndtls(10);bndtls(14);bndtls(15);bndtls(2);bndtls(2);bndtls(15);bndtls(15);switcher = bndtls_r(2);
@@ -651,7 +651,7 @@ void train_to_track_paquet(int nid_packet) {
             }
         break;
         case 44:
-            memory = bndtls(13);bndtls(9);
+            memory = bndtls_r(13);bndtls(9);
             bndtls(memory-22);
         break;
     }
