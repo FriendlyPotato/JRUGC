@@ -602,6 +602,61 @@ void track_to_train_paquet(int nid_packet) {
     }
 }
 
+void train_to_track_paquet(int nid_packet) {
+    int i,j,iterations,iterations_bis,switcher,switcher_bis,memory,memory_bis;
+    switch(nid_packet) {
+        case 0:
+            bndtls(13);bndtls(2);bndtls(10);bndtls(14);bndtls(15);bndtls(2);bndtls(2);bndtls(15);bndtls(15);switcher = bndtls_r(2);
+            if (switcher==1 || switcher==2) {
+                bndtls(15);
+            }
+            bndtls(7);bndtls(2);bndtls(4);switcher = bndtls_r(3);
+            if (switcher==1) {
+                bndtls(8);
+            }
+        break;
+        case 1:
+            bndtls(13);bndtls(2);bndtls(10);bndtls(14);bndtls(10);bndtls(14);bndtls(15);bndtls(2);bndtls(2);bndtls(15);bndtls(15);switcher = bndtls_r(2);
+            if (switcher==1 || switcher==2) {
+                bndtls(15);
+            }
+            bndtls(7);bndtls(2);bndtls(4);switcher = bndtls_r(3);
+            if (switcher==1) {
+                bndtls(8);
+            }
+        break;
+        case 3:
+            bndtls(13);iterations = bndtls_r(5);
+            for (i=0;i<iterations;i++) {
+                bndtls(16);bndtls(16);bndtls(16);bndtls(16);
+            }
+        break;
+        case 4:
+            bndtls(13);bndtls(8);
+        break;
+        case 5:
+            bndtls(13);bndtls(16);bndtls(16);
+        break;
+        case 9:
+            bndtls(13);bndtls(10);bndtls(14);
+        break;
+        case 11:
+            bndtls(13);bndtls(16);bndtls(16);bndtls(15);bndtls(12);bndtls(7);bndtls(8);bndtls(7);bndtls(2);iterations = bndtls_r(5);
+            for (i=0;i<iterations;i++) {
+                bndtls(8);
+            }
+            iterations = bndtls_r(5);
+            for (i=0;i<iterations;i++) {
+                bndtls(8);
+            }
+        break;
+        case 44:
+            memory = bndtls(13);bndtls(9);
+            bndtls(memory-22);
+        break;
+    }
+}
+
 void track_to_train_message(int nid_message) {
     int message_length = bndtls_r(10);
     int initial_treated = treated;
