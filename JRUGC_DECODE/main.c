@@ -1334,6 +1334,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
             Current_Distance = Distance_Storage[Message_Position];
             Details_Position = SendMessage(MessageWindow,LB_GETITEMDATA,Message_Position,0);
             if (Message_Position==Message_Count) Details_End_Point = End_Details_Position; else Details_End_Point = SendMessage(MessageWindow,LB_GETITEMDATA,Message_Position+1,0);
+            SendMessage(MessageWindow,LB_GETTEXT,(WPARAM)Message_Position,(LPARAM)Message_Buffer);
 
             if (Reference_Message>=0) {
                 Delta_Hour = 0;
