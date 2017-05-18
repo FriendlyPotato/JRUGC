@@ -38,6 +38,7 @@ char* Message_Buffer;
 char* Details_Buffer;
 char* Details_Bindec_Buffer;
 char* Details_Data_Buffer;
+char* Window_Buffer;
 bool control;
 bool shift;
 FILE* Compiled_File;
@@ -773,6 +774,16 @@ void train_to_track_message(int nid_message) {
     }
 }
 
+void D_l_message(int l_message) {
+    sprintf(Window_Buffer,"L_MESSAGE\t%d bit(s)\tMessage length",l_message);
+    if (n_iter_i>0) sprintf(result2,"(%d) %s",n_iter_i,result);
+    else if (n_iter_j>0) sprintf(result2,"(%d)(%d) %s",n_iter_i,result);
+    else sprintf(result2,result);
+    SendMessage(hwnd,LB_ADDSTRING,(WPARAM)0,(LPARAM)result2);
+    free(result2);
+    free(result);
+}
+
 void compile_file_read() {
     MSG Escape_Message;
     SendMessage(ProgressBarWindow,PBM_SETPOS,0,0);
@@ -1258,7 +1269,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     char* DistanceWindow_Buffer = malloc(Window_Buffer_Size*sizeof(char));
     char* TimeWindow_Buffer = malloc(Window_Buffer_Size*sizeof(char));
     char* SpeedWindow_Buffer = malloc(Window_Buffer_Size*sizeof(char));
-    char* Window_Buffer = malloc(Window_Buffer_Size*sizeof(char));
+    Window_Buffer = malloc(Window_Buffer_Size*sizeof(char));
 
     Master_Bluffer = malloc(Master_Bluffer_Size*sizeof(char));
     Path_Buffer = malloc(Path_Buffer_Size*sizeof(char));
@@ -1396,6 +1407,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
                             }
                         }
                         if (strstr(current_message_name,"FROM")!=NULL) {
+                            D_l_message(Message_Details_Storage[Details_Position+1]);
                             switch(-Message_Details_Storage[Details_Position]) {
                                 case 2:
                                     SendMessage(DetailsWindow,LB_ADDSTRING,(WPARAM)0,(LPARAM)"SR AUTHORISATION");
